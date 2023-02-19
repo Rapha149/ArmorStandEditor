@@ -7,7 +7,7 @@
     <parent>
         <artifactId>ArmorStandEditor-parent</artifactId>
         <groupId>de.rapha149.armorstandeditor</groupId>
-        <version>1.0</version>
+        <version>1.1</version>
     </parent>
 
     <artifactId>ArmorStandEditor</artifactId>

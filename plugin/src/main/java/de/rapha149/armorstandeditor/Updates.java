@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
 
 public class Updates {
 
-    public static final String SPIGOT_URL = "https://www.spigotmc.org/resources/"; //TODO
-    private static final int RESOURCE_ID = -1; //TODO
+    public static final String SPIGOT_URL = "https://www.spigotmc.org/resources/armorstandeditor.108120/";
+    private static final int RESOURCE_ID = 108120;
 
     public static String getAvailableVersion() {
         ArmorStandEditor plugin = ArmorStandEditor.getInstance();
@@ -27,7 +27,7 @@ public class Updates {
                 URLConnection conn = new URL("https://api.spiget.org/v2/resources/" + RESOURCE_ID + "/versions/latest").openConnection();
                 conn.addRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:86.0) Gecko/20100101 Firefox/86.0");
                 conn.connect();
-                JSONObject root = new JSONObject(new BufferedReader(new InputStreamReader(conn.getInputStream())).lines().collect(Collectors.toList()));
+                JSONObject root = new JSONObject(new BufferedReader(new InputStreamReader(conn.getInputStream())).lines().collect(Collectors.joining()));
                 if (root != null)
                     version = root.getString("name");
                 else
