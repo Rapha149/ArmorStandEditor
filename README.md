@@ -13,7 +13,7 @@ A Minecraft plugin to edit armor stands simply by interacting with them.
 - Change various settings of the armor stand
 - Receive the armor stand as an item - equipment, settings is saved!
 - Copy the armor stand's settings by combining the item with another armor stand in the crafting table
-- Rename the armor stand
+- Rename the armor stand (color codes and hex codes supported!)
 - You can deactivate or set permissions for any feature!
 - All messages are customizable!
 
