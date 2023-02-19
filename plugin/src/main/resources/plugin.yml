@@ -1,0 +1,20 @@
+name: ArmorStandEditor
+version: 1.0
+main: de.rapha149.armorstandeditor.ArmorStandEditor
+authors: [ Rapha149 ]
+description: A plugin to edit armor stands simply by interacting with them.
+api-version: 1.17
+website: https://github.com/Rapha149/ArmorStandEditor
+
+commands:
+  asereload:
+    description: Reload the ArmorStandEditor config and messages.
+    permission: armorstandeditor.reload
+
+permissions:
+  armorstandeditor.*:
+    children:
+      armorstandeditor: true
+  armorstandeditor.reload:
+    children:
+      armorstandeditor: true
