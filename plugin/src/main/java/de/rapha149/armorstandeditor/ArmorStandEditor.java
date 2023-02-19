@@ -65,7 +65,7 @@ public final class ArmorStandEditor extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        events.closeAllInvs();
+        events.onDisable();
         getLogger().info(getMessage("plugin.disable"));
     }
 

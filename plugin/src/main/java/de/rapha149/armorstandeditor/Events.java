@@ -67,19 +67,20 @@ public class Events implements Listener, Runnable {
 
     private Map<Player, ArmorStandStatus> invs = new HashMap<>();
     private Map<Long, AnvilGUI> anvilInvs = new HashMap<>();
-    private boolean closingAllInvs = false;
+    private boolean disabling = false;
 
     public Events() {
         Bukkit.getScheduler().runTaskTimer(ArmorStandEditor.getInstance(), this, 0, 20);
     }
 
-    public void closeAllInvs() {
-        closingAllInvs = true;
+    public void onDisable() {
+        disabling = true;
         invs.values().forEach(status -> status.gui.getInventory().close());
         invs.clear();
         anvilInvs.values().forEach(AnvilGUI::closeInventory);
         anvilInvs.clear();
-        closingAllInvs = false;
+        moving.values().forEach(this::cancelMovement);
+        moving.clear();
     }
 
     @EventHandler
@@ -506,7 +507,7 @@ public class Events implements Listener, Runnable {
                                         .title(getMessage("armorstands.rename.name"))
                                         .text(name.isEmpty() ? "Name..." : name.substring(0, Math.min(50, name.length())))
                                         .onClose(p -> {
-                                            if (!closingAllInvs) {
+                                            if (!disabling) {
                                                 anvilInvs.remove(time);
                                                 Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, false));
                                             }
@@ -788,13 +789,17 @@ public class Events implements Listener, Runnable {
             movement.task.cancel();
 
         if (!leftClick) {
-            if (movement instanceof ArmorStandPositionMovement)
-                movement.armorStand.teleport(((ArmorStandPositionMovement) movement).cancelLocation);
-            else if (movement instanceof ArmorStandBodyPartMovement bodyPartMovement)
-                bodyPartMovement.bodyPart.apply(movement.armorStand, bodyPartMovement.cancelAngle);
+            cancelMovement(movement);
             playArmorStandBreakSound(player);
         } else
             playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
+    }
+
+    private void cancelMovement(ArmorStandMovement movement) {
+        if (movement instanceof ArmorStandPositionMovement)
+            movement.armorStand.teleport(((ArmorStandPositionMovement) movement).cancelLocation);
+        else if (movement instanceof ArmorStandBodyPartMovement bodyPartMovement)
+            bodyPartMovement.bodyPart.apply(movement.armorStand, bodyPartMovement.cancelAngle);
     }
 
     private Location getRelativeArmorStandPosition(Player player, ArmorStand armorStand) {
