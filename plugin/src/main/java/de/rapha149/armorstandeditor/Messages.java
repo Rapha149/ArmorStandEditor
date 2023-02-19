@@ -33,8 +33,8 @@ public class Messages {
                                                               "\n&cThis feature is disabled.");
         messageConfig.addDefault("armorstands.features.no_permission", "&cNot available." +
                                                               "\n&cYou can't use this feature.");
-        messageConfig.addDefault("armorstands.title.normal", "&dArmor Stand");
-        messageConfig.addDefault("armorstands.title.admin_bypass", "&dArmor Stand (Admin Bypass)");
+        messageConfig.addDefault("armorstands.title.normal", "&5Armor Stand");
+        messageConfig.addDefault("armorstands.title.admin_bypass", "&5Armor Stand (Admin Bypass)");
         messageConfig.addDefault("armorstands.page.first", "&7» [1/2]");
         messageConfig.addDefault("armorstands.page.second", "&7« [2/2]");
         messageConfig.addDefault("armorstands.status.on", "&aOn&7/Off");
