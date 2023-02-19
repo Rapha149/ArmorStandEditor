@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
 
@@ -91,7 +92,7 @@ public final class ArmorStandEditor extends JavaPlugin {
             return map;
         }));
         metrics.addCustomChart(new SimplePie("general_permission", () -> String.valueOf(Config.get().permissions.general != null)));
-        metrics.addCustomChart(new SimplePie("deactivated_item", () -> Config.get().deactivatedItem));
+        metrics.addCustomChart(new SimplePie("deactivated_item", () -> Optional.ofNullable(Config.get().deactivatedItem).orElse("None")));
         metrics.addCustomChart(new DrilldownPie("features_1", () -> {
             Map<String, Map<String, Integer>> map = new HashMap<>();
             Map<String, Integer> replaceEquipment = new HashMap<>();
