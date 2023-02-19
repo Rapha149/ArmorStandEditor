@@ -19,7 +19,7 @@ A Minecraft plugin to edit armor stands simply by interacting with them.
 
 ## URLs
 
-- Spigot
+- [Spigot](https://www.spigotmc.org/resources/armorstandeditor.108120/)
 - [bStats](https://bstats.org/plugin/bukkit/Armor%20Stand%20Editor/17771)
 
 ## How does it work?
