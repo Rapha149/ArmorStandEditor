@@ -17,6 +17,11 @@ A Minecraft plugin to edit armor stands simply by interacting with them.
 - You can deactivate or set permissions for any feature!
 - All messages are customizable!
 
+## URLs
+
+- Spigot
+- [bStats](https://bstats.org/plugin/bukkit/Armor%20Stand%20Editor/17771)
+
 ## How does it work?
 
 You can access the ArmorStandEditor inventory simply by sneaking and right clicking the armor stand you want to edit!
@@ -135,6 +140,10 @@ features:
     enabled: true
     permission: null
 ```
+
+## Additional information
+
+This plugin collects anonymous server stats with [bStats](https://bstats.org), an open-source statistics service for Minecraft software. If you don't want this, you can deactivate it in `plugins/bStats/config.yml`.
 
 ## Credits
 
