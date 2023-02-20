@@ -31,21 +31,27 @@ public class Config {
                                      "\nSet to \"null\" to show the actual item of the feature even though it's disabled.");
         comments.put("features", "A list of features. You can enable/disable each feature or set a permission to use a certain feature." +
                                  "\nIf you want a feature to be enabled and everybody to be able to use it, set the permission to \"null\".");
-        comments.put("features.replaceEquipment", "The feature that you can replace the armor stand's equipment (armor and hand items) in the ASE inventory.");
+        comments.put("features.replaceEquipment", "Replacing the armor stand's equipment (armor and hand items) in the ASE inventory.");
         comments.put("features.replaceEquipment.useDeactivatedItem", "Whether or not to replace the armor and hand items of the armor stand with the disabled item when this feature is disabled.");
-        comments.put("features.moveBodyParts", "The feature that you can move the armor stand's body parts.");
-        comments.put("features.movePosition", "The feature that you can move the armor stand's position.");
-        comments.put("features.privateArmorstand", "The feature that you can make your armor stand private so that only you can open its ASE inventory.");
-        comments.put("features.disabledSlots", "The feature that you can lock the equipment slots of your armor stand so that players can't take items directly.");
-        comments.put("features.invisibility", "The feature that you can make your armor stand invisible.");
-        comments.put("features.invulnerability", "The feature that you can make your armor stand invulnerable.");
-        comments.put("features.showArms", "The feature that you can make your armor stand's arms visible.");
-        comments.put("features.gravity", "The feature that you can make your armor stand not affected by gravity.");
-        comments.put("features.basePlate", "The feature that you can make your armor stand's base plate invisible.");
-        comments.put("features.small", "The feature that you can make your armor stand small.");
-        comments.put("features.giveItem", "The feature that you can receive your armor stand as an item.");
-        comments.put("features.rename", "The feature that you can rename your armor stand.");
-        comments.put("features.copy", "The feature that you can copy your armor stand settings by combining a modified armor stand item with a normal armor stand item in the crafting table." +
+        comments.put("features.moveBodyParts", "Moving the armor stand's body parts.");
+        comments.put("features.movePosition", "Moving the armor stand's position.");
+        comments.put("features.privateArmorstand", "Making your armor stand private so that only you can open its ASE inventory.");
+        comments.put("features.disabledSlots", "Locking the equipment slots of your armor stand so that players can't take items directly.");
+        comments.put("features.invisibility", "Making your armor stand invisible.");
+        comments.put("features.invulnerability", "Making your armor stand invulnerable.");
+        comments.put("features.showArms", "Making your armor stand's arms visible.");
+        comments.put("features.gravity", "Making your armor stand not affected by gravity.");
+        comments.put("features.basePlate", "Making your armor stand's base plate invisible.");
+        comments.put("features.small", "Making your armor stand small.");
+        comments.put("features.glowing", "Making your armor stand glow.");
+        comments.put("features.fire", "Making your armor stand seeming to be on fire.");
+        comments.put("features.passenger", "Set your armor stand as a passenger on a vehicle.");
+        comments.put("features.passenger.players", "Whether or not players can be selected as vehicles.");
+        comments.put("features.vehicle", "Set another entity as a passenger on your armor stand.");
+        comments.put("features.vehicle.players", "Whether or not players can be selected as passengers.");
+        comments.put("features.rename", "Renaming your armor stand.");
+        comments.put("features.giveItem", "Receiving your armor stand as an item.");
+        comments.put("features.copy", "Copying your armor stand settings by combining a modified armor stand item with a normal armor stand item in the crafting table." +
                                       "\nThis behavior is similar to the copying behavior of written books.");
     }
 
@@ -137,8 +143,13 @@ public class Config {
         public FeatureData gravity = new FeatureData();
         public FeatureData basePlate = new FeatureData();
         public FeatureData small = new FeatureData();
-        public FeatureData giveItem = new FeatureData();
+        public FeatureData glowing = new FeatureData();
+        public FeatureData movable = new FeatureData();
+        public FeatureData fire = new FeatureData();
+        public VehicleFeatureData passenger = new VehicleFeatureData();
+        public VehicleFeatureData vehicle = new VehicleFeatureData();
         public FeatureData rename = new FeatureData();
+        public FeatureData giveItem = new FeatureData();
         public FeatureData copy = new FeatureData();
 
         public static class FeatureData {
@@ -150,6 +161,11 @@ public class Config {
         public static class ReplaceEquipmentFeatureData extends FeatureData {
 
             public boolean useDeactivatedItem = false;
+        }
+
+        public static class VehicleFeatureData extends FeatureData {
+
+            public boolean players = false;
         }
     }
 }

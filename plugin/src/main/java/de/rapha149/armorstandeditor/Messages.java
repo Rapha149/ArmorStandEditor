@@ -18,7 +18,7 @@ public class Messages {
         messageConfig = new YamlConfiguration();
         messageConfig.options().copyDefaults(true);
 
-        messageConfig.addDefault("prefix", "&8[&6ArmorStandEditor&8] &r");
+        messageConfig.addDefault("prefix", "&dArmorStandEditor &7» §r");
         messageConfig.addDefault("plugin.enable", "Plugin successfully enabled.");
         messageConfig.addDefault("plugin.disable", "Plugin disabled.");
         messageConfig.addDefault("plugin.up_to_date", "Your version of this plugin is up to date!");
@@ -27,8 +27,9 @@ public class Messages {
         messageConfig.addDefault("no_permission", "%prefix%&cYou do not have permission to do this.");
         messageConfig.addDefault("error", "%prefix%&cAn error occurred.");
         messageConfig.addDefault("reload", "%prefix%&7The config has been reloaded.");
+        messageConfig.addDefault("not_possible_now", "%prefix%&cThis is not possible right now.");
         messageConfig.addDefault("armorstands.no_permission", "%prefix%&cYou can't edit this armor stand.");
-        messageConfig.addDefault("armorstands.already_open", "%prefix%&6This armor stand is already being edited at the moment.");
+        messageConfig.addDefault("armorstands.already_open", "%prefix%&cThis armor stand is already being edited at the moment.");
         messageConfig.addDefault("armorstands.features.deactivated", "&cNot available." +
                                                               "\n&cThis feature is disabled.");
         messageConfig.addDefault("armorstands.features.no_permission", "&cNot available." +
@@ -47,11 +48,9 @@ public class Messages {
         messageConfig.addDefault("armorstands.items.boots", "&dBoots [Slot]");
         messageConfig.addDefault("armorstands.items.mainhand", "&dRight Hand [Slot]");
         messageConfig.addDefault("armorstands.items.offhand", "&dLeft Hand [Slot]");
-        messageConfig.addDefault("armorstands.move.armorstand_already_moving", "%prefix%&cThe armor stand is already being moved.");
-        messageConfig.addDefault("armorstands.move.player_already_moving", "%prefix%&cYou're already moving an armor stand at the moment.");
         messageConfig.addDefault("armorstands.move.title.color_activated", "&d&l");
-        messageConfig.addDefault("armorstands.move.title.color_deactivated", "&7&l");
-        messageConfig.addDefault("armorstands.move.title.text", "%color_normal%Normal: %normal% &7&l| %color_sneak%Sneaking: %sneak% &7&l| &7&lLeft click: Finish | Right click: Cancel");
+        messageConfig.addDefault("armorstands.move.title.color_deactivated", "&7");
+        messageConfig.addDefault("armorstands.move.title.text", "%color_normal%Normal: %normal% &7| %color_sneak%Sneaking: %sneak% &7| &7Left click: Finish | Right click: Cancel");
         messageConfig.addDefault("armorstands.move.head.name", "&dMove head");
         messageConfig.addDefault("armorstands.move.head.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
         messageConfig.addDefault("armorstands.move.body.name", "&dMove body");
@@ -64,7 +63,7 @@ public class Messages {
         messageConfig.addDefault("armorstands.move.left_leg.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
         messageConfig.addDefault("armorstands.move.right_leg.name", "&dMove right leg");
         messageConfig.addDefault("armorstands.move.right_leg.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
-        messageConfig.addDefault("armorstands.position.title", "&d&lLeft click: Set down | Right click: Cancel");
+        messageConfig.addDefault("armorstands.position.title", "&dLeft click: Set down | Right click: Cancel");
         messageConfig.addDefault("armorstands.position.name", "&dMove");
         messageConfig.addDefault("armorstands.position.lore", "&7» Click, to move the armor stand");
         messageConfig.addDefault("armorstands.position.x.name", "&dMove (X)");
@@ -105,6 +104,22 @@ public class Messages {
         messageConfig.addDefault("armorstands.settings.base_plate.lore", "&7» Click to toggle the base plate\n&7» %status%");
         messageConfig.addDefault("armorstands.settings.small.name", "&dSmall armor stand");
         messageConfig.addDefault("armorstands.settings.small.lore", "&7» Click to toggle the small armor stand\n&7» %status%");
+        messageConfig.addDefault("armorstands.settings.glowing.name", "&dGlowing");
+        messageConfig.addDefault("armorstands.settings.glowing.lore", "&7» Click to toggle the glowing effect\n&7» %status%");
+        messageConfig.addDefault("armorstands.settings.fire.name", "&dOn fire");
+        messageConfig.addDefault("armorstands.settings.fire.lore", "&7» Click to toggle visual fire\n&7» %status%");
+        messageConfig.addDefault("armorstands.passenger.name", "&dArmor stand as passenger");
+        messageConfig.addDefault("armorstands.passenger.lore", "&7» Left click ➜ Set on vehicle" +
+                                                                "\n&7» Right click ➜ Remove from vehicle");
+        messageConfig.addDefault("armorstands.passenger.choose.title", "&dChoose a vehicle &7| &7Left click: Choose | Right click: Cancel");
+        messageConfig.addDefault("armorstands.passenger.choose.no_players", "%prefix%&cYou can't choose a player.");
+        messageConfig.addDefault("armorstands.passenger.choose.not_itself", "%prefix%&cYou can't choose the armor stand itself.");
+        messageConfig.addDefault("armorstands.vehicle.name", "&dArmor stand as vehicle");
+        messageConfig.addDefault("armorstands.vehicle.lore", "&7» Left click ➜ Choose passenger" +
+                                                                "\n&7» Right click ➜ Remove all passengers");
+        messageConfig.addDefault("armorstands.vehicle.choose.title", "&dChoose a passenger &7| &7Left click: Choose | Right click: Cancel");
+        messageConfig.addDefault("armorstands.vehicle.choose.no_players", "%prefix%&cYou can't choose a player.");
+        messageConfig.addDefault("armorstands.vehicle.choose.not_itself", "%prefix%&cYou can't choose the armor stand itself.");
         messageConfig.addDefault("armorstands.give_item.name", "&dGive as item");
         messageConfig.addDefault("armorstands.give_item.lore", "&7» Click to receive the armor stand as an item.");
         messageConfig.addDefault("armorstands.rename.name", "&dRename");

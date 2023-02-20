@@ -26,14 +26,13 @@ import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.*;
 import org.bukkit.entity.ArmorStand.LockType;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.inventory.ClickType;
@@ -63,6 +62,7 @@ public class Events implements Listener, Runnable {
     private final String INVISIBLE_TAG = "ArmorStandEditor-Invisible";
     private Map<UUID, Long> armorItemsCooldown = new HashMap<>();
     private Map<Player, ArmorStandMovement> moving = new HashMap<>();
+    private Map<Player, Entry<ArmorStand, Boolean>> vehicleSelection = new HashMap<>();
 
     private Map<Player, ArmorStandStatus> invs = new HashMap<>();
     private Map<Long, AnvilGUI> anvilInvs = new HashMap<>();
@@ -93,7 +93,7 @@ public class Events implements Listener, Runnable {
 
     @EventHandler
     public void onInteractAtEntity(PlayerInteractAtEntityEvent event) {
-        onMovementInteraction(event);
+        onInteraction(event);
         if (event.isCancelled())
             return;
 
@@ -142,7 +142,9 @@ public class Events implements Listener, Runnable {
         return invs.entrySet().stream().anyMatch(entry -> !entry.getKey().getUniqueId().equals(uuid) &&
                                                           entry.getValue().armorStand.getUniqueId().equals(armorStandUuid)) ||
                moving.entrySet().stream().anyMatch(entry -> !entry.getKey().getUniqueId().equals(uuid) &&
-                                                            entry.getValue().armorStand.getUniqueId().equals(armorStandUuid));
+                                                            entry.getValue().armorStand.getUniqueId().equals(armorStandUuid)) ||
+               vehicleSelection.entrySet().stream().anyMatch(entry -> !entry.getKey().getUniqueId().equals(uuid) &&
+                                                                      entry.getValue().getKey().getUniqueId().equals(armorStandUuid));
     }
 
     private void openGUI(Player player, ArmorStand armorStand, boolean pageWithArmor) {
@@ -477,7 +479,7 @@ public class Events implements Listener, Runnable {
             for (int i = 0; i < settings.length; i++)
                 setSettingsItem(player, gui, armorStand, i, settings[i]);
 
-            gui.setItem(5, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.ARMOR_STAND), "armorstands.give_item").asGuiItem(event -> {
+            gui.setItem(5, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.ARMOR_STAND), "armorstands.give_item").asGuiItem(event -> {
                 PlayerInventory inv = player.getInventory();
                 if (inv.firstEmpty() == -1) {
                     playAnvilSound(player);
@@ -491,52 +493,47 @@ public class Events implements Listener, Runnable {
                 playArmorStandBreakSound(player);
             }), features.giveItem, player));
 
-            Component customNameDisplay = wrapper.getCustomNameForDisplay(armorStand);
-            if (customNameDisplay == null)
-                customNameDisplay = Component.text("§c---");
-            List<Component> lore = new ArrayList<>();
-            for (String line : getMessage("armorstands.rename.lore").split("\n")) {
-                if (!line.contains("%name%"))
-                    lore.add(Component.text(line));
-                else {
-                    String[] split = line.split("%name%");
-                    net.kyori.adventure.text.TextComponent.Builder component = Component.text().color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false);
-                    for (int i = 0; i < split.length; i++) {
-                        component.append(Component.text(split[i]));
-                        if (line.endsWith("%name%") || i != split.length - 1)
-                            component.append(customNameDisplay);
-                    }
-                    lore.add(component.asComponent());
-                }
-            }
-            gui.setItem(5, 8, checkDeactivated(ItemBuilder.from(Material.NAME_TAG).name(Component.text(getMessage("armorstands.rename.name"))).lore(lore).asGuiItem(event -> {
-                if (event.isLeftClick()) {
-                    String customNameEdit = wrapper.getCustomNameForEdit(armorStand);
-                    String name = customNameEdit != null && !customNameEdit.isEmpty() ? customNameEdit : "Name...";
-                    long time = System.currentTimeMillis();
-                    Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> anvilInvs.put(time, new Builder().plugin(ArmorStandEditor.getInstance())
-                            .title(getMessage("armorstands.rename.name"))
-                            .text(name.substring(0, Math.min(50, name.length())))
-                            .onClose(p -> {
-                                if (!disabling) {
-                                    anvilInvs.remove(time);
-                                    Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, false));
-                                }
-                            }).onComplete(completion -> {
-                                wrapper.setCustomName(armorStand, completion.getText());
-                                armorStand.setCustomNameVisible(true);
-                                anvilInvs.remove(time);
-                                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, false));
-                                return Arrays.asList(ResponseAction.run(() -> {}));
-                            }).open(player)));
-                } else if (event.isRightClick()) {
-                    wrapper.setCustomName(armorStand, null);
-                    armorStand.setCustomNameVisible(false);
-                    gui.updateItem(5, 8, ItemBuilder.from(Material.NAME_TAG).name(Component.text(getMessage("armorstands.rename.name")))
-                            .lore(Arrays.stream(getMessage("armorstands.rename.lore").replace("%name%", "§c---")
-                                    .split("\n")).map(line -> (Component) Component.text(line)).collect(Collectors.toList())).build());
-                }
-            }), features.rename, player));
+            setRenameItem(player, armorStand, gui);
+
+            gui.setItem(4, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.LEAD), "armorstands.vehicle")
+                    .glow(!armorStand.getPassengers().isEmpty()).asGuiItem(event -> {
+                        if (event.isLeftClick()) {
+                            gui.close(player);
+                            if (isPlayerDoingSomethingOutsideOfInv(player)) {
+                                player.sendMessage(getMessage("not_possible_now"));
+                                return;
+                            }
+
+                            vehicleSelection.put(player, Map.entry(armorStand, false));
+                            run();
+                        } else if (event.isRightClick()) {
+                            if (armorStand.eject()) {
+                                playExperienceSound(player);
+                                gui.updateItem(5, 8, applyNameAndLore(ItemBuilder.from(Material.SADDLE), "armorstands.vehicle").glow(false).build());
+                            } else
+                                playBassSound(player);
+                        }
+                    }), features.vehicle, player));
+
+            gui.setItem(5, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.SADDLE), "armorstands.passenger")
+                    .glow(armorStand.isInsideVehicle()).asGuiItem(event -> {
+                        if (event.isLeftClick()) {
+                            gui.close(player);
+                            if (isPlayerDoingSomethingOutsideOfInv(player)) {
+                                player.sendMessage(getMessage("not_possible_now"));
+                                return;
+                            }
+
+                            vehicleSelection.put(player, Map.entry(armorStand, true));
+                            run();
+                        } else if (event.isRightClick()) {
+                            if (armorStand.leaveVehicle()) {
+                                playExperienceSound(player);
+                                gui.updateItem(4, 8, applyNameAndLore(ItemBuilder.from(Material.MINECART), "armorstands.passenger").glow(false).build());
+                            } else
+                                playBassSound(player);
+                        }
+                    }), features.passenger, player));
 
             gui.setItem(6, 1, ItemBuilder.from(Material.SPECTRAL_ARROW).name(Component.text(getMessage("armorstands.page.second"))).asGuiItem(event -> {
                 Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, true));
@@ -547,6 +544,16 @@ public class Events implements Listener, Runnable {
         gui.getFiller().fill(ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE).name(Component.text("§r")).asGuiItem());
         gui.open(player);
         invs.put(player, status);
+    }
+
+    @EventHandler
+    public void onEntityDeath(EntityDeathEvent event) {
+        Entity entity = event.getEntity();
+        if (!(entity instanceof ArmorStand))
+            return;
+
+        UUID uuid = entity.getUniqueId();
+        new HashMap<>(invs).values().stream().filter(status -> status.armorStand.getUniqueId().equals(uuid)).forEach(status -> status.gui.close(status.player));
     }
 
     private boolean isDeactivated(FeatureData feature, Player player) {
@@ -585,7 +592,6 @@ public class Events implements Listener, Runnable {
         return builder.setNbt("deactivated", true).asGuiItem(event -> playBassSound(player));
     }
 
-    @SuppressWarnings("deprecation")
     private ItemStack checkDeactivated(ItemStack item, FeatureData feature, Player player) {
         boolean noPermission = false;
         if (feature.enabled) {
@@ -617,14 +623,14 @@ public class Events implements Listener, Runnable {
         return ItemNbt.setBoolean(newItem, "deactivated", true);
     }
 
+    private boolean isPlayerDoingSomethingOutsideOfInv(Player player) {
+        return moving.containsKey(player) || vehicleSelection.containsKey(player);
+    }
+
     private void startMovePosition(Player player, ArmorStand armorStand) {
         UUID uuid = armorStand.getUniqueId();
-        if (moving.containsKey(player)) {
-            player.sendMessage(getMessage("armorstands.move.player_already_moving"));
-            return;
-        }
-        if (moving.values().stream().anyMatch(movement -> movement.armorStand.getUniqueId().equals(uuid))) {
-            player.sendMessage(getMessage("armorstands.move.armorstand_already_moving"));
+        if (isPlayerDoingSomethingOutsideOfInv(player) || moving.values().stream().anyMatch(movement -> movement.armorStand.getUniqueId().equals(uuid))) {
+            player.sendMessage(getMessage("not_possible_now"));
             return;
         }
 
@@ -637,12 +643,8 @@ public class Events implements Listener, Runnable {
 
     private void startMovePosition(Player player, ArmorStand armorStand, Axis axis) {
         UUID uuid = armorStand.getUniqueId();
-        if (moving.containsKey(player)) {
-            player.sendMessage(getMessage("armorstands.move.player_already_moving"));
-            return;
-        }
-        if (moving.values().stream().anyMatch(movement -> movement.armorStand.getUniqueId().equals(uuid))) {
-            player.sendMessage(getMessage("armorstands.move.armorstand_already_moving"));
+        if (isPlayerDoingSomethingOutsideOfInv(player) || moving.values().stream().anyMatch(movement -> movement.armorStand.getUniqueId().equals(uuid))) {
+            player.sendMessage(getMessage("not_possible_now"));
             return;
         }
 
@@ -667,12 +669,8 @@ public class Events implements Listener, Runnable {
 
     private void startMoveBodyPart(Player player, ArmorStand armorStand, BodyPart bodyPart) {
         UUID uuid = armorStand.getUniqueId();
-        if (moving.containsKey(player)) {
-            player.sendMessage(getMessage("armorstands.move.player_already_moving"));
-            return;
-        }
-        if (moving.values().stream().anyMatch(movement -> movement.armorStand.getUniqueId().equals(uuid))) {
-            player.sendMessage(getMessage("armorstands.move.armorstand_already_moving"));
+        if (isPlayerDoingSomethingOutsideOfInv(player) || moving.values().stream().anyMatch(movement -> movement.armorStand.getUniqueId().equals(uuid))) {
+            player.sendMessage(getMessage("not_possible_now"));
             return;
         }
 
@@ -711,7 +709,6 @@ public class Events implements Listener, Runnable {
         run();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public void run() {
         moving.forEach((player, movement) -> {
@@ -728,6 +725,9 @@ public class Events implements Listener, Runnable {
                         .replace("%color_sneak%", player.isSneaking() ? activated : deactivated)));
             }
         });
+
+        vehicleSelection.forEach((player, entry) -> player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                new TextComponent(getMessage("armorstands." + (entry.getValue() ? "passenger" : "vehicle") + ".choose.title"))));
     }
 
     @EventHandler
@@ -743,7 +743,6 @@ public class Events implements Listener, Runnable {
     public void onToggleSneak(PlayerToggleSneakEvent event) {
         Player player = event.getPlayer();
         if (moving.containsKey(player) && moving.get(player) instanceof ArmorStandBodyPartMovement movement) {
-
             Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), this);
             Location loc = player.getLocation();
             movement.zeroYaw = loc.getYaw();
@@ -753,42 +752,57 @@ public class Events implements Listener, Runnable {
     }
 
     @EventHandler
-    public void onMovementInteraction(PlayerInteractEvent event) {
+    public void onInteraction(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        if (!moving.containsKey(player))
+        Action action = event.getAction();
+        if (action == Action.PHYSICAL)
             return;
 
-        Action action = event.getAction();
-        if (action != Action.PHYSICAL) {
+        if (moving.containsKey(player)) {
             event.setCancelled(true);
             onMovementInteraction(player, action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK);
+        }
+
+        if (vehicleSelection.containsKey(player)) {
+            if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK)
+                return;
+
+            event.setCancelled(true);
+            onVehicleSelectionInteraction(player, null, false);
         }
     }
 
     @EventHandler
-    public void onMovementInteraction(PlayerInteractEntityEvent event) {
+    public void onInteraction(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
-        if (!moving.containsKey(player))
-            return;
+        if (moving.containsKey(player)) {
+            event.setCancelled(true);
+            onMovementInteraction(player, false);
+        }
 
-        event.setCancelled(true);
-        onMovementInteraction(player, false);
+        if (vehicleSelection.containsKey(player)) {
+            event.setCancelled(true);
+            onVehicleSelectionInteraction(player, null, false);
+        }
     }
 
     @EventHandler
-    public void onMovementInteraction(EntityDamageByEntityEvent event) {
+    public void onInteraction(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player))
             return;
-        if (!moving.containsKey(player))
-            return;
 
-        if (event.getEntityType() == EntityType.ARMOR_STAND)
+        if (moving.containsKey(player)) {
             event.setCancelled(true);
-        onMovementInteraction(player, true);
+            onMovementInteraction(player, true);
+        }
+
+        if (vehicleSelection.containsKey(player)) {
+            event.setCancelled(true);
+            onVehicleSelectionInteraction(player, event.getEntity(), true);
+        }
     }
 
-    @SuppressWarnings("deprecation")
-    public void onMovementInteraction(Player player, boolean leftClick) {
+    private void onMovementInteraction(Player player, boolean leftClick) {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(""));
         ArmorStandMovement movement = moving.remove(player);
         if (movement.task != null)
@@ -798,7 +812,7 @@ public class Events implements Listener, Runnable {
             cancelMovement(movement);
             playArmorStandBreakSound(player);
         } else
-            playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
+            playExperienceSound(player);
     }
 
     private void cancelMovement(ArmorStandMovement movement) {
@@ -806,6 +820,35 @@ public class Events implements Listener, Runnable {
             movement.armorStand.teleport(((ArmorStandPositionMovement) movement).cancelLocation);
         else if (movement instanceof ArmorStandBodyPartMovement bodyPartMovement)
             bodyPartMovement.bodyPart.apply(movement.armorStand, bodyPartMovement.cancelAngle);
+    }
+
+    private void onVehicleSelectionInteraction(Player player, Entity entity, boolean leftClick) {
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(""));
+        Entry<ArmorStand, Boolean> entry = vehicleSelection.remove(player);
+        ArmorStand armorStand = entry.getKey();
+        boolean asPassenger = entry.getValue();
+
+        if (leftClick) {
+            String key = "armorstands." + (asPassenger ? "passenger" : "vehicle") + ".choose.";
+            FeaturesData features = Config.get().features;
+            if (!(asPassenger ? features.passenger : features.vehicle).players && entity instanceof Player) {
+                player.sendMessage(getMessage(key + ".no_players"));
+                playBassSound(player);
+                return;
+            }
+            if (entity.getUniqueId().equals(armorStand.getUniqueId())) {
+                player.sendMessage(getMessage(key + ".not_itself"));
+                playBassSound(player);
+                return;
+            }
+
+            if (asPassenger)
+                entity.addPassenger(armorStand);
+            else
+                armorStand.addPassenger(entity);
+            playExperienceSound(player);
+        } else
+            playArmorStandBreakSound(player);
     }
 
     private Location getRelativeArmorStandPosition(Player player, ArmorStand armorStand) {
@@ -952,42 +995,67 @@ public class Events implements Listener, Runnable {
     }
 
     private void setSettingsItem(Player player, Gui gui, ArmorStand armorStand, int index, boolean enabled) {
-        int row = index / 2 + 2, col = index % 2 == 0 ? 7 : 8;
-
+        int row, col;
         Material mat;
         String key;
         FeatureData feature;
         FeaturesData features = Config.get().features;
         switch (index) {
             case 0:
+                row = 2;
+                col = 6;
                 mat = Material.GLASS;
                 key = "invisible";
                 feature = features.invisibility;
                 break;
             case 1:
-                mat = Material.GOLDEN_APPLE;
-                key = "invulnerable";
-                feature = features.invulnerability;
-                break;
-            case 2:
+                row = 3;
+                col = 6;
                 mat = Material.STICK;
                 key = "show_arms";
                 feature = features.showArms;
                 break;
-            case 3:
-                mat = Material.PHANTOM_MEMBRANE;
-                key = "gravity";
-                feature = features.gravity;
-                break;
-            case 4:
+            case 2:
+                row = 4;
+                col = 6;
                 mat = Material.STONE_SLAB;
                 key = "base_plate";
                 feature = features.basePlate;
                 break;
+            case 3:
+                row = 2;
+                col = 7;
+                mat = Material.GOLDEN_APPLE;
+                key = "invulnerable";
+                feature = features.invulnerability;
+                break;
+            case 4:
+                row = 3;
+                col = 7;
+                mat = Material.PHANTOM_MEMBRANE;
+                key = "gravity";
+                feature = features.gravity;
+                break;
             case 5:
+                row = 4;
+                col = 7;
                 mat = Material.TOTEM_OF_UNDYING;
                 key = "small";
                 feature = features.small;
+                break;
+            case 6:
+                row = 2;
+                col = 8;
+                mat = Material.GLOWSTONE_DUST;
+                key = "glowing";
+                feature = features.glowing;
+                break;
+            case 7:
+                row = 3;
+                col = 8;
+                mat = Material.CAMPFIRE;
+                key = "fire";
+                feature = features.fire;
                 break;
             default:
                 throw new IllegalArgumentException("Parameter \"index\" out of range.");
@@ -999,11 +1067,13 @@ public class Events implements Listener, Runnable {
             boolean newEnabled = !enabled;
             switch (index) {
                 case 0 -> armorStand.setInvisible(newEnabled);
-                case 1 -> armorStand.setInvulnerable(newEnabled);
-                case 2 -> armorStand.setArms(newEnabled);
-                case 3 -> armorStand.setGravity(newEnabled);
-                case 4 -> armorStand.setBasePlate(newEnabled);
+                case 1 -> armorStand.setArms(newEnabled);
+                case 2 -> armorStand.setBasePlate(newEnabled);
+                case 3 -> armorStand.setInvulnerable(newEnabled);
+                case 4 -> armorStand.setGravity(newEnabled);
                 case 5 -> armorStand.setSmall(newEnabled);
+                case 6 -> armorStand.setGlowing(newEnabled);
+                case 7 -> armorStand.setVisualFire(newEnabled);
             }
 
             boolean mainhandDisabled = index == 2 && Arrays.stream(LockType.values()).allMatch(type -> armorStand.hasEquipmentLock(EquipmentSlot.HAND, type)),
@@ -1021,6 +1091,54 @@ public class Events implements Listener, Runnable {
         }), feature, player));
     }
 
+    private void setRenameItem(Player player, ArmorStand armorStand, Gui gui) {
+        Component customNameDisplay = wrapper.getCustomNameForDisplay(armorStand);
+        if (customNameDisplay == null)
+            customNameDisplay = Component.text("§c---");
+        List<Component> lore = new ArrayList<>();
+        for (String line : getMessage("armorstands.rename.lore").split("\n")) {
+            if (!line.contains("%name%"))
+                lore.add(Component.text(line));
+            else {
+                String[] split = line.split("%name%");
+                net.kyori.adventure.text.TextComponent.Builder component = Component.text().color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false);
+                for (int i = 0; i < split.length; i++) {
+                    component.append(Component.text(split[i]));
+                    if (line.endsWith("%name%") || i != split.length - 1)
+                        component.append(customNameDisplay);
+                }
+                lore.add(component.asComponent());
+            }
+        }
+
+        gui.updateItem(5, 7, checkDeactivated(ItemBuilder.from(Material.NAME_TAG).name(Component.text(getMessage("armorstands.rename.name"))).lore(lore).asGuiItem(event -> {
+            if (event.isLeftClick()) {
+                String customNameEdit = wrapper.getCustomNameForEdit(armorStand);
+                String name = customNameEdit != null && !customNameEdit.isEmpty() ? customNameEdit : "Name...";
+                long time = System.currentTimeMillis();
+                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> anvilInvs.put(time, new Builder().plugin(ArmorStandEditor.getInstance())
+                        .title(getMessage("armorstands.rename.name"))
+                        .text(name.substring(0, Math.min(50, name.length())))
+                        .onClose(p -> {
+                            if (!disabling) {
+                                anvilInvs.remove(time);
+                                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, false));
+                            }
+                        }).onComplete(completion -> {
+                            wrapper.setCustomName(armorStand, completion.getText());
+                            armorStand.setCustomNameVisible(true);
+                            anvilInvs.remove(time);
+                            Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, false));
+                            return Arrays.asList(ResponseAction.run(() -> {}));
+                        }).open(player)));
+            } else if (event.isRightClick()) {
+                wrapper.setCustomName(armorStand, null);
+                armorStand.setCustomNameVisible(false);
+                setRenameItem(player, armorStand, gui);
+            }
+        }), Config.get().features.rename, player));
+    }
+
     private ItemStack[] getEquipment(ArmorStand armorStand, Player player) {
         EntityEquipment equipment = armorStand.getEquipment();
         return new ItemStack[]{getEquipmentItem(EquipmentSlot.HEAD, equipment.getHelmet(), player),
@@ -1031,7 +1149,6 @@ public class Events implements Listener, Runnable {
                 getEquipmentItem(EquipmentSlot.OFF_HAND, equipment.getItemInOffHand(), player)};
     }
 
-    @SuppressWarnings("deprecation")
     private ItemStack getEquipmentItem(EquipmentSlot slot, ItemStack current, Player player) {
         ReplaceEquipmentFeatureData feature = Config.get().features.replaceEquipment;
         boolean deactivated = isDeactivated(feature, player);
@@ -1060,11 +1177,13 @@ public class Events implements Listener, Runnable {
 
     private boolean[] getSettings(ArmorStand armorStand) {
         return new boolean[]{armorStand.isInvisible(),
-                armorStand.isInvulnerable(),
                 armorStand.hasArms(),
-                armorStand.hasGravity(),
                 armorStand.hasBasePlate(),
-                armorStand.isSmall()};
+                armorStand.isInvulnerable(),
+                armorStand.hasGravity(),
+                armorStand.isSmall(),
+                armorStand.isGlowing(),
+                armorStand.isVisualFire()};
     }
 
     private void playAnvilSound(Player player) {
@@ -1085,6 +1204,10 @@ public class Events implements Listener, Runnable {
 
     private void playSpyglassSound(Player player) {
         playSound(player, Sound.ITEM_SPYGLASS_USE, 1F);
+    }
+
+    private void playExperienceSound(Player player) {
+        playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
     }
 
     private void playSound(Player player, Sound sound) {

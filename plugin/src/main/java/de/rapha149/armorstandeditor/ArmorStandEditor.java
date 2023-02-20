@@ -21,7 +21,6 @@ public final class ArmorStandEditor extends JavaPlugin {
     private static ArmorStandEditor instance;
 
     public VersionWrapper wrapper;
-    public boolean isPaper;
 
     private Events events;
 
@@ -36,12 +35,6 @@ public final class ArmorStandEditor extends JavaPlugin {
             throw new IllegalStateException("Failed to load support for server version \"" + nmsVersion + "\"");
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("ArmorStandEditor does not support the server version \"" + nmsVersion + "\"");
-        }
-
-        try {
-            Class.forName("com.destroystokyo.paper.ParticleBuilder");
-            isPaper = true;
-        } catch (ClassNotFoundException ignored) {
         }
 
         Messages.loadMessages();

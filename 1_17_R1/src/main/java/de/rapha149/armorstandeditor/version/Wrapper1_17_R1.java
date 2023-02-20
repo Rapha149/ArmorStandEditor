@@ -83,11 +83,12 @@ public class Wrapper1_17_R1 implements VersionWrapper {
         nbt.setBoolean("NoGravity", !armorStand.hasGravity());
         nbt.setBoolean("Silent", armorStand.isSilent());
         nbt.setBoolean("Invulnerable", armorStand.isInvulnerable());
-        nbt.setBoolean("Glowing", armorStand.isGlowing());
         nbt.setBoolean("ShowArms", armorStand.hasArms());
         nbt.setBoolean("Small", armorStand.isSmall());
         nbt.setBoolean("Marker", armorStand.isMarker());
         nbt.setBoolean("NoBasePlate", !armorStand.hasBasePlate());
+        nbt.setBoolean("Glowing", armorStand.isGlowing());
+        nbt.setBoolean("HasVisualFire", armorStand.isVisualFire());
         nbt.set("ArmorItems", entityNBT.get("ArmorItems"));
         nbt.set("HandItems", entityNBT.get("HandItems"));
         nbt.set("Pose", entityNBT.getCompound("Pose"));
