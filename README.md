@@ -6,6 +6,7 @@ A Minecraft plugin to edit armor stands simply by interacting with them.
 
 ## Features
 
+- Survival friendly (no commands needed)
 - Replace the armor stand's equipment in an inventory
 - Move the armor stand's body parts and position with your head movement
 - Make your armor stand private (other players can't modify it with this plugin)
