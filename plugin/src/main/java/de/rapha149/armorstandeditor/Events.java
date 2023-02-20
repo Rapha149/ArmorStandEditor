@@ -14,7 +14,8 @@ import dev.triumphteam.gui.components.util.ItemNbt;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.wesjd.anvilgui.AnvilGUI;
@@ -60,8 +61,6 @@ public class Events implements Listener, Runnable {
 
     private final NamespacedKey PRIVATE_KEY = NamespacedKey.fromString("private", ArmorStandEditor.getInstance());
     private final String INVISIBLE_TAG = "ArmorStandEditor-Invisible";
-    private final LegacyComponentSerializer EDIT_SERIALIZER = LegacyComponentSerializer.builder().hexColors().character('&').build();
-    private final LegacyComponentSerializer SHOW_SERIALIZER = LegacyComponentSerializer.builder().useUnusualXRepeatedCharacterHexFormat().character('§').build();
     private Map<UUID, Long> armorItemsCooldown = new HashMap<>();
     private Map<Player, ArmorStandMovement> moving = new HashMap<>();
 
@@ -75,7 +74,7 @@ public class Events implements Listener, Runnable {
 
     public void onDisable() {
         disabling = true;
-        invs.values().forEach(status -> status.gui.getInventory().close());
+        invs.values().forEach(status -> status.player.closeInventory());
         invs.clear();
         anvilInvs.values().forEach(AnvilGUI::closeInventory);
         anvilInvs.clear();
@@ -370,7 +369,7 @@ public class Events implements Listener, Runnable {
                     event.setCancelled(true);
                     long time = System.currentTimeMillis();
                     armorItemsCooldown.put(uuid, time);
-                    Bukkit.getScheduler().runTaskLater(ArmorStandEditor.getInstance(), () -> armorItemsCooldown.remove(uuid, time), 20);
+                    Bukkit.getScheduler().runTaskLater(ArmorStandEditor.getInstance(), () -> armorItemsCooldown.remove(uuid, time), 10);
                     player.sendMessage(getMessage("armorstands.items.cooldown"));
                     return;
                 }
@@ -441,7 +440,7 @@ public class Events implements Listener, Runnable {
                 if (!event.isCancelled() && event.getCurrentItem() != null) {
                     long time = System.currentTimeMillis();
                     armorItemsCooldown.put(uuid, time);
-                    Bukkit.getScheduler().runTaskLater(ArmorStandEditor.getInstance(), () -> armorItemsCooldown.remove(uuid, time), 20);
+                    Bukkit.getScheduler().runTaskLater(ArmorStandEditor.getInstance(), () -> armorItemsCooldown.remove(uuid, time), 10);
 
                     event.setCurrentItem(ItemNbt.getString(event.getCurrentItem(), "empty_slot") != null ?
                             new ItemStack(Material.AIR) : ItemNbt.removeTag(event.getCurrentItem(), "mf-gui"));
@@ -492,45 +491,52 @@ public class Events implements Listener, Runnable {
                 playArmorStandBreakSound(player);
             }), features.giveItem, player));
 
-            if (ArmorStandEditor.getInstance().isPaper) {
-                Component customName = armorStand.customName();
-                gui.setItem(5, 8, checkDeactivated(ItemBuilder.from(Material.NAME_TAG).name(Component.text(getMessage("armorstands.rename.name")))
-                        .lore(Arrays.stream(getMessage("armorstands.rename.lore").replace("%name%",
-                                        customName != null ? SHOW_SERIALIZER.serialize(customName) : "§c---")
-                                .split("\n")).map(line -> (Component) Component.text(line)).collect(Collectors.toList())).asGuiItem(event -> {
-                            if (event.isLeftClick()) {
-                                Component currentCustomName = armorStand.customName();
-                                String name = currentCustomName != null ? EDIT_SERIALIZER.serialize(currentCustomName)
-                                        .replaceAll("§([a-fA-F\\dklmnorx])", "&$1") : "Name...";
-                                long time = System.currentTimeMillis();
-                                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> anvilInvs.put(time, new Builder().plugin(ArmorStandEditor.getInstance())
-                                        .title(getMessage("armorstands.rename.name"))
-                                        .text(name.isEmpty() ? "Name..." : name.substring(0, Math.min(50, name.length())))
-                                        .onClose(p -> {
-                                            if (!disabling) {
-                                                anvilInvs.remove(time);
-                                                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, false));
-                                            }
-                                        }).onComplete(completion -> {
-                                            armorStand.customName(EDIT_SERIALIZER.deserialize(ChatColor.translateAlternateColorCodes('&', completion.getText())));
-                                            armorStand.setCustomNameVisible(true);
-                                            anvilInvs.remove(time);
-                                            Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, false));
-                                            return Arrays.asList(ResponseAction.run(() -> {}));
-                                        }).open(player)));
-                            } else if (event.isRightClick()) {
-                                armorStand.customName(null);
-                                armorStand.setCustomNameVisible(false);
-                                gui.updateItem(5, 8, ItemBuilder.from(Material.NAME_TAG).name(Component.text(getMessage("armorstands.rename.name")))
-                                        .lore(Arrays.stream(getMessage("armorstands.rename.lore").replace("%name%", "§c---")
-                                                .split("\n")).map(line -> (Component) Component.text(line)).collect(Collectors.toList())).build());
-                            }
-                        }), features.rename, player));
-            } else {
-                gui.setItem(5, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.NAME_TAG),
-                        "armorstands.rename.name", "armorstands.rename.not_paper.lore", false)
-                        .asGuiItem(event -> playAnvilSound(player)), features.rename, player));
+            Component customNameDisplay = wrapper.getCustomNameForDisplay(armorStand);
+            if (customNameDisplay == null)
+                customNameDisplay = Component.text("§c---");
+            List<Component> lore = new ArrayList<>();
+            for (String line : getMessage("armorstands.rename.lore").split("\n")) {
+                if (!line.contains("%name%"))
+                    lore.add(Component.text(line));
+                else {
+                    String[] split = line.split("%name%");
+                    net.kyori.adventure.text.TextComponent.Builder component = Component.text().color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false);
+                    for (int i = 0; i < split.length; i++) {
+                        component.append(Component.text(split[i]));
+                        if (line.endsWith("%name%") || i != split.length - 1)
+                            component.append(customNameDisplay);
+                    }
+                    lore.add(component.asComponent());
+                }
             }
+            gui.setItem(5, 8, checkDeactivated(ItemBuilder.from(Material.NAME_TAG).name(Component.text(getMessage("armorstands.rename.name"))).lore(lore).asGuiItem(event -> {
+                if (event.isLeftClick()) {
+                    String customNameEdit = wrapper.getCustomNameForEdit(armorStand);
+                    String name = customNameEdit != null && !customNameEdit.isEmpty() ? customNameEdit : "Name...";
+                    long time = System.currentTimeMillis();
+                    Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> anvilInvs.put(time, new Builder().plugin(ArmorStandEditor.getInstance())
+                            .title(getMessage("armorstands.rename.name"))
+                            .text(name.substring(0, Math.min(50, name.length())))
+                            .onClose(p -> {
+                                if (!disabling) {
+                                    anvilInvs.remove(time);
+                                    Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, false));
+                                }
+                            }).onComplete(completion -> {
+                                wrapper.setCustomName(armorStand, completion.getText());
+                                armorStand.setCustomNameVisible(true);
+                                anvilInvs.remove(time);
+                                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, false));
+                                return Arrays.asList(ResponseAction.run(() -> {}));
+                            }).open(player)));
+                } else if (event.isRightClick()) {
+                    wrapper.setCustomName(armorStand, null);
+                    armorStand.setCustomNameVisible(false);
+                    gui.updateItem(5, 8, ItemBuilder.from(Material.NAME_TAG).name(Component.text(getMessage("armorstands.rename.name")))
+                            .lore(Arrays.stream(getMessage("armorstands.rename.lore").replace("%name%", "§c---")
+                                    .split("\n")).map(line -> (Component) Component.text(line)).collect(Collectors.toList())).build());
+                }
+            }), features.rename, player));
 
             gui.setItem(6, 1, ItemBuilder.from(Material.SPECTRAL_ARROW).name(Component.text(getMessage("armorstands.page.second"))).asGuiItem(event -> {
                 Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, true));

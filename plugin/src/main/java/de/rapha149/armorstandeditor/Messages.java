@@ -112,10 +112,6 @@ public class Messages {
                 &7» Current name ➜ &f%name%
                 &7» Left click ➜ Change name (Supports color codes)
                 &7» Right click ➜ Remove name""");
-        messageConfig.addDefault("armorstands.rename.not_paper.lore", """
-                &cNot available.
-                &cIn order to use this feature, you have
-                &cto use Paper as your server software.""");
     }
 
     public static void loadMessages() {

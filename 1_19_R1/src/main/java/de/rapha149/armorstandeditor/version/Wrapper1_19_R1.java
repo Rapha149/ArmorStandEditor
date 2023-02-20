@@ -1,5 +1,6 @@
 package de.rapha149.armorstandeditor.version;
 
+import net.kyori.adventure.text.Component;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -25,6 +26,30 @@ import java.util.Map.Entry;
 public class Wrapper1_19_R1 implements VersionWrapper {
 
     private final EntityArmorStand defaultArmorStand = new EntityArmorStand(((CraftWorld) Bukkit.getWorlds().get(0)).getHandle(), 0, 0, 0);
+
+    @Override
+    public String getCustomNameForEdit(ArmorStand armorStand) {
+        EntityArmorStand handle = ((CraftArmorStand) armorStand).getHandle();
+        if (!handle.Y())
+            return null;
+
+        return EDIT_SERIALIZER.serialize(GSON_SERIALIZER.deserialize(ChatSerializer.a(handle.Z())));
+    }
+
+    @Override
+    public Component getCustomNameForDisplay(ArmorStand armorStand) {
+        EntityArmorStand handle = ((CraftArmorStand) armorStand).getHandle();
+        if (!handle.Y())
+            return null;
+
+        return GSON_SERIALIZER.deserialize(ChatSerializer.a(handle.Z()));
+    }
+
+    @Override
+    public void setCustomName(ArmorStand armorStand, String customName) {
+        EntityArmorStand handle = ((CraftArmorStand) armorStand).getHandle();
+        handle.b(customName == null ? null : ChatSerializer.a(GSON_SERIALIZER.serialize(EDIT_SERIALIZER.deserialize(customName))));
+    }
 
     @Override
     public void resetArmorstandPosition(ArmorStand armorStand, BodyPart bodyPart) {
