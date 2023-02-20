@@ -143,7 +143,26 @@ public final class ArmorStandEditor extends JavaPlugin {
             map.put("Rename", rename);
             return map;
         }));
-        metrics.addCustomChart(new DrilldownPie("features_4", () -> {
+        metrics.addCustomChart(new DrilldownPie("features_5", () -> {
+            Map<String, Map<String, Integer>> map = new HashMap<>();
+            Map<String, Integer> glowing = new HashMap<>();
+            Map<String, Integer> fire = new HashMap<>();
+            Map<String, Integer> passenger = new HashMap<>();
+            Map<String, Integer> vehicle = new HashMap<>();
+
+            FeaturesData features = Config.get().features;
+            glowing.put(getFeatureStatus(features.glowing), 1);
+            fire.put(getFeatureStatus(features.fire), 1);
+            passenger.put(getFeatureStatus(features.passenger), 1);
+            vehicle.put(getFeatureStatus(features.vehicle), 1);
+
+            map.put("Glowing", glowing);
+            map.put("Fire", fire);
+            map.put("Armor stand as passenger", passenger);
+            map.put("Armor stand as vehicle", vehicle);
+            return map;
+        }));
+        metrics.addCustomChart(new DrilldownPie("features_6", () -> {
             Map<String, Map<String, Integer>> map = new HashMap<>();
             Map<String, Integer> giveItem = new HashMap<>();
             Map<String, Integer> copy = new HashMap<>();
