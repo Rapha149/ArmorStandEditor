@@ -44,7 +44,7 @@ You can set other permissions in the config:
 
 ## Default config
 ```yaml
-# ArmorStandEditor version 1.2
+# ArmorStandEditor version 1.3
 # Github: https://github.com/Rapha149/ArmorStandEditor
 # Spigot: https://www.spigotmc.org/resources/armorstandeditor.108120/
 
