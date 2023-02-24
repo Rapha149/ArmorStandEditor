@@ -86,23 +86,23 @@ public final class ArmorStandEditor extends JavaPlugin {
         }));
         metrics.addCustomChart(new SimplePie("general_permission", () -> String.valueOf(Config.get().permissions.general != null)));
         metrics.addCustomChart(new SimplePie("deactivated_item", () -> Optional.ofNullable(Config.get().deactivatedItem).orElse("None")));
-        metrics.addCustomChart(new DrilldownPie("features_1", () -> {
+        metrics.addCustomChart(new DrilldownPie("features_7", () -> {
             Map<String, Map<String, Integer>> map = new HashMap<>();
             Map<String, Integer> replaceEquipment = new HashMap<>();
             Map<String, Integer> moveBodyParts = new HashMap<>();
             Map<String, Integer> movePosition = new HashMap<>();
-            Map<String, Integer> privateArmorStand = new HashMap<>();
+            Map<String, Integer> rotate = new HashMap<>();
 
             FeaturesData features = Config.get().features;
             replaceEquipment.put(getFeatureStatus(features.replaceEquipment), 1);
             moveBodyParts.put(getFeatureStatus(features.moveBodyParts), 1);
             movePosition.put(getFeatureStatus(features.movePosition), 1);
-            privateArmorStand.put(getFeatureStatus(features.privateArmorstand), 1);
+            rotate.put(getFeatureStatus(features.rotate), 1);
 
             map.put("Replace equipment", replaceEquipment);
             map.put("Move body parts", moveBodyParts);
             map.put("Move position", movePosition);
-            map.put("Private armor stand", privateArmorStand);
+            map.put("Rotate", rotate);
             return map;
         }));
         metrics.addCustomChart(new DrilldownPie("features_2", () -> {
@@ -162,17 +162,20 @@ public final class ArmorStandEditor extends JavaPlugin {
             map.put("Armor stand as vehicle", vehicle);
             return map;
         }));
-        metrics.addCustomChart(new DrilldownPie("features_6", () -> {
+        metrics.addCustomChart(new DrilldownPie("features_8", () -> {
             Map<String, Map<String, Integer>> map = new HashMap<>();
             Map<String, Integer> giveItem = new HashMap<>();
             Map<String, Integer> copy = new HashMap<>();
+            Map<String, Integer> privateArmorStand = new HashMap<>();
 
             FeaturesData features = Config.get().features;
             giveItem.put(getFeatureStatus(features.giveItem), 1);
             copy.put(getFeatureStatus(features.copy), 1);
+            privateArmorStand.put(getFeatureStatus(features.privateArmorstand), 1);
 
             map.put("Give item", giveItem);
             map.put("Copy", copy);
+            map.put("Private", privateArmorStand);
             return map;
         }));
     }
