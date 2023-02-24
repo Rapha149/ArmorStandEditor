@@ -35,6 +35,7 @@ public class Config {
         comments.put("features.replaceEquipment.useDeactivatedItem", "Whether or not to replace the armor and hand items of the armor stand with the disabled item when this feature is disabled.");
         comments.put("features.moveBodyParts", "Moving the armor stand's body parts.");
         comments.put("features.movePosition", "Moving the armor stand's position.");
+        comments.put("features.rotate", "Changing the armor stand's rotation.");
         comments.put("features.privateArmorstand", "Making your armor stand private so that only you can open its ASE inventory.");
         comments.put("features.disabledSlots", "Locking the equipment slots of your armor stand so that players can't take items directly.");
         comments.put("features.invisibility", "Making your armor stand invisible.");
@@ -135,6 +136,7 @@ public class Config {
         public ReplaceEquipmentFeatureData replaceEquipment = new ReplaceEquipmentFeatureData();
         public FeatureData moveBodyParts = new FeatureData();
         public FeatureData movePosition = new FeatureData();
+        public FeatureData rotate = new FeatureData();
         public FeatureData privateArmorstand = new FeatureData();
         public FeatureData disabledSlots = new FeatureData();
         public FeatureData invisibility = new FeatureData();

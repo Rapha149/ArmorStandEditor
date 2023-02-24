@@ -7,6 +7,7 @@ import de.rapha149.armorstandeditor.Config.PermissionsData;
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandBodyPartMovement;
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandPositionMovement;
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandPositionMovement.ArmorStandPositionSnapInMovement;
+import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandRotationMovement;
 import de.rapha149.armorstandeditor.version.BodyPart;
 import de.rapha149.armorstandeditor.version.Direction;
 import de.rapha149.armorstandeditor.version.VersionWrapper;
@@ -56,6 +57,8 @@ import org.bukkit.util.Vector;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
@@ -236,6 +239,8 @@ public class Events implements Listener, Runnable {
 
         FeaturesData features = Config.get().features;
         if (pageWithArmor) {
+            setPrivateItem(player, gui, armorStand, adminBypass);
+
             gui.setItem(2, 3, ItemBuilder.from(equipment[0]).asGuiItem());
             gui.setItem(3, 3, ItemBuilder.from(equipment[1]).asGuiItem());
             gui.setItem(4, 3, ItemBuilder.from(equipment[2]).asGuiItem());
@@ -298,7 +303,7 @@ public class Events implements Listener, Runnable {
                 }
             }), features.moveBodyParts, player));
 
-            gui.setItem(4, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.FEATHER), "armorstands.move_position").asGuiItem(event -> {
+            gui.setItem(2, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.FEATHER), "armorstands.move_position").asGuiItem(event -> {
                 gui.close(player);
                 startMovePosition(player, armorStand, event.isRightClick());
             }), features.movePosition, player));
@@ -309,7 +314,7 @@ public class Events implements Listener, Runnable {
                     startSnapInMovePosition(player, armorStand, Axis.X);
                 } else {
                     armorStand.teleport(armorStand.getLocation().add(event.isLeftClick() ? 0.05 : -0.05, 0, 0));
-                    playSound(player, Sound.BLOCK_ANVIL_STEP);
+                    playStepSound(player);
                 }
             }), features.movePosition, player));
             gui.setItem(5, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.LIME_DYE), "armorstands.move_position.y").asGuiItem(event -> {
@@ -318,7 +323,7 @@ public class Events implements Listener, Runnable {
                     startSnapInMovePosition(player, armorStand, Axis.Y);
                 } else {
                     armorStand.teleport(armorStand.getLocation().add(0, event.isLeftClick() ? 0.05 : -0.05, 0));
-                    playSound(player, Sound.BLOCK_ANVIL_STEP);
+                    playStepSound(player);
                 }
             }), features.movePosition, player));
             gui.setItem(5, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.BLUE_DYE), "armorstands.move_position.z").asGuiItem(event -> {
@@ -327,11 +332,28 @@ public class Events implements Listener, Runnable {
                     startSnapInMovePosition(player, armorStand, Axis.Z);
                 } else {
                     armorStand.teleport(armorStand.getLocation().add(0, 0, event.isLeftClick() ? 0.05 : -0.05));
-                    playSound(player, Sound.BLOCK_ANVIL_STEP);
+                    playStepSound(player);
                 }
             }), features.movePosition, player));
 
-            setPrivateItem(player, gui, armorStand, adminBypass);
+            gui.setItem(2, 8, checkDeactivated(applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.ENDER_EYE),
+                    getMessage("armorstands.rotate.name"), getMessage("armorstands.rotate.lore").replace("%rotation%",
+                            String.valueOf(Math.round(armorStand.getLocation().getYaw() * 100F) / 100F)), false).asGuiItem(event -> {
+                if (event.getClick() == ClickType.DROP) {
+                    gui.close(player);
+                    startRotationMovement(player, armorStand);
+                } else {
+                    int amount = event.isShiftClick() ? 10 : 45;
+                    if (event.isRightClick())
+                        amount *= -1;
+                    armorStand.setRotation(armorStand.getLocation().getYaw() + amount, armorStand.getLocation().getPitch());
+                    playStepSound(player);
+
+                    gui.updateItem(2, 8, applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.ENDER_EYE),
+                            getMessage("armorstands.rotate.name"), getMessage("armorstands.rotate.lore").replace("%rotation%",
+                                    String.valueOf(Math.round(armorStand.getLocation().getYaw() * 100F) / 100F)), false).build());
+                }
+            }), features.rotate, player));
 
             gui.setItem(6, 9, ItemBuilder.from(Material.SPECTRAL_ARROW).name(Component.text(getMessage("armorstands.page.first"))).asGuiItem(event -> {
                 Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, false));
@@ -657,6 +679,11 @@ public class Events implements Listener, Runnable {
                 List<Location> locations = movement.locations;
                 if (locations.isEmpty()) {
                     locations.add(center);
+                    BiConsumer<Double, Double> addLocation = (x, z) -> {
+                        Location loc = new Location(center.getWorld(), x, center.getY(), z, center.getYaw(), center.getPitch());
+                        if (loc.distanceSquared(player.getLocation()) <= 2500)
+                            locations.add(loc);
+                    };
 
                     double distance = movement.distance;
                     int count = 0;
@@ -670,16 +697,16 @@ public class Events implements Listener, Runnable {
 
                         double x = minX, z = minZ;
                         for (; x <= maxX; x += distance)
-                            locations.add(new Location(center.getWorld(), x, center.getY(), z, center.getYaw(), center.getPitch()));
+                            addLocation.accept(x, z);
                         x -= distance;
                         for (; z <= maxZ; z += distance)
-                            locations.add(new Location(center.getWorld(), x, center.getY(), z, center.getYaw(), center.getPitch()));
+                            addLocation.accept(x, z);
                         z -= distance;
                         for (; x >= minX; x -= distance)
-                            locations.add(new Location(center.getWorld(), x, center.getY(), z, center.getYaw(), center.getPitch()));
+                            addLocation.accept(x, z);
                         x += distance;
                         for (; z > minZ; z -= distance)
-                            locations.add(new Location(center.getWorld(), x, center.getY(), z, center.getYaw(), center.getPitch()));
+                            addLocation.accept(x, z);
                     }
                 }
 
@@ -732,6 +759,10 @@ public class Events implements Listener, Runnable {
             List<Location> locations = movement.locations;
             if (locations.isEmpty()) {
                 locations.add(center);
+                Consumer<Location> addLocation = loc -> {
+                    if (loc.distanceSquared(player.getLocation()) <= 2500)
+                        locations.add(loc.clone());
+                };
 
                 double distance = movement.distance;
                 int count = 0;
@@ -743,8 +774,8 @@ public class Events implements Listener, Runnable {
 
                     axis.setValue(plus, axis.getValue(plus) + distance);
                     axis.setValue(minus, axis.getValue(minus) - distance);
-                    locations.add(plus.clone());
-                    locations.add(minus.clone());
+                    addLocation.accept(plus);
+                    addLocation.accept(minus);
                 }
             }
 
@@ -821,16 +852,30 @@ public class Events implements Listener, Runnable {
         run();
     }
 
+    private void startRotationMovement(Player player, ArmorStand armorStand) {
+        UUID uuid = armorStand.getUniqueId();
+        if (isPlayerDoingSomethingOutsideOfInv(player) || moving.values().stream().anyMatch(movement -> movement.armorStand.getUniqueId().equals(uuid))) {
+            player.sendMessage(getMessage("not_possible_now"));
+            return;
+        }
+
+        moving.put(player, new ArmorStandRotationMovement(armorStand, Bukkit.getScheduler().runTaskTimer(ArmorStandEditor.getInstance(),
+                () -> armorStand.setRotation(player.getLocation().getYaw(), armorStand.getLocation().getPitch()), 0, 1)));
+        run();
+    }
+
     @Override
     public void run() {
+        // titles
         moving.forEach((player, movement) -> {
             if (movement instanceof ArmorStandPositionMovement) {
                 String message;
                 if (movement instanceof ArmorStandPositionSnapInMovement snapInMovement) {
                     message = getMessage("armorstands.move_position.title.snapin")
-                            .replace("%distance%", String.valueOf(snapInMovement.distance))
-                            .replace("%unaligned_color%", getMessage("armorstands.move_position.title.snapin_color_unaligned_" +
-                                                                     (player.isSneaking() ? "active" : "inactive")));
+                                      .replace("%distance%", String.valueOf(snapInMovement.distance))
+                                      .replace("%aligned_color%", getMessage("armorstands.move_position.title.snapin_color_aligned_" +
+                                                                             (player.isSneaking() ? "active" : "inactive"))) +
+                              " " + Math.round(movement.armorStand.getLocation().distance(player.getLocation()) * 10D) / 10D;
                 } else
                     message = getMessage("armorstands.move_position.title.normal");
 
@@ -844,11 +889,25 @@ public class Events implements Listener, Runnable {
                         .replace("%sneak%", bodyPart.sneakYawDir.getString(bodyPart.sneakPitchDir))
                         .replace("%color_normal%", !player.isSneaking() ? activated : deactivated)
                         .replace("%color_sneak%", player.isSneaking() ? activated : deactivated)));
+            } else if (movement instanceof ArmorStandRotationMovement) {
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(getMessage("armorstands.rotate.title")));
             }
         });
 
         vehicleSelection.forEach((player, entry) -> player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                 new TextComponent(getMessage("armorstands." + (entry.getValue() ? "passenger" : "vehicle") + ".choose.title"))));
+
+        // remove when player is far away
+        moving.entrySet().removeIf(entry -> {
+            ArmorStandMovement movement = entry.getValue();
+            if (entry.getKey().getLocation().distanceSquared(movement.armorStand.getLocation()) > 2500) {
+                movement.task.cancel();
+                cancelMovement(movement);
+                return true;
+            }
+            return false;
+        });
+        vehicleSelection.entrySet().removeIf(entry -> entry.getKey().getLocation().distanceSquared(entry.getValue().getKey().getLocation()) > 2500);
     }
 
     @EventHandler
@@ -900,7 +959,7 @@ public class Events implements Listener, Runnable {
             snapInMovement.locations.clear();
 
             Location loc = snapInMovement.getCurrentLocation().getBlock().getLocation();
-            if (!event.isSneaking())
+            if (event.isSneaking())
                 loc.add(0.5, 0, 0.5);
             else if (snapInMovement.axis == null) {
                 double[] alignmentXZ = snapInMovement.previousAlignmentXZ;
@@ -981,10 +1040,13 @@ public class Events implements Listener, Runnable {
     }
 
     private void cancelMovement(ArmorStandMovement movement) {
-        if (movement instanceof ArmorStandPositionMovement)
-            movement.armorStand.teleport(((ArmorStandPositionMovement) movement).originalLocation);
-        else if (movement instanceof ArmorStandBodyPartMovement bodyPartMovement)
+        if (movement instanceof ArmorStandPositionMovement positionMovement) {
+            movement.armorStand.teleport(positionMovement.originalLocation);
+        } else if (movement instanceof ArmorStandBodyPartMovement bodyPartMovement) {
             bodyPartMovement.bodyPart.apply(movement.armorStand, bodyPartMovement.cancelAngle);
+        } else if (movement instanceof ArmorStandRotationMovement rotationMovement) {
+            movement.armorStand.setRotation(rotationMovement.originalYaw, movement.armorStand.getLocation().getPitch());
+        }
     }
 
     private void onVehicleSelectionInteraction(Player player, Entity entity, boolean leftClick) {
@@ -1075,7 +1137,7 @@ public class Events implements Listener, Runnable {
         } else
             name = null;
 
-        gui.setItem(1, 9, checkDeactivated(applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.SHULKER_SHELL), getMessage("armorstands.private.name"),
+        gui.setItem(1, 1, checkDeactivated(applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.SHULKER_SHELL), getMessage("armorstands.private.name"),
                 getMessage("armorstands.private.lore." + (adminBypass ? "admin_bypass" : "normal")).replace("%player%", locked ?
                         getMessage("armorstands.private.player").replace("%player%", name) : ""), locked)
                 .glow(locked).asGuiItem(event -> {
@@ -1375,6 +1437,10 @@ public class Events implements Listener, Runnable {
         playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
     }
 
+    private void playStepSound(Player player) {
+        playSound(player, Sound.BLOCK_ANVIL_STEP);
+    }
+
     private void playSound(Player player, Sound sound) {
         playSound(player, sound, 0.75F);
     }
@@ -1468,14 +1534,13 @@ public class Events implements Listener, Runnable {
                     this.axis = axis;
 
                     Location loc = armorStand.getLocation();
-                    Location center = loc.getBlock().getLocation().add(0.5, 0, 0.5);
 
                     if (axis == null) {
                         previousAlignmentXZ = new double[]{loc.getX() - loc.getBlockX(), loc.getZ() - loc.getBlockZ()};
-                        offsetXZ = new double[]{center.getX() - loc.getX(), center.getZ() - loc.getZ()};
+                        offsetXZ = new double[]{0, 0};
                     } else {
                         previousAlignmentSingle = axis.getValue(loc) - axis.getBlockValue(loc);
-                        offsetSingle = axis.getValue(center) - axis.getValue(loc);
+                        offsetSingle = 0;
                     }
                 }
 
@@ -1517,6 +1582,17 @@ public class Events implements Listener, Runnable {
                     this.zeroPitch += 360;
 
                 zeroAngle = cancelAngle = bodyPart.get(armorStand);
+            }
+        }
+
+        static class ArmorStandRotationMovement extends ArmorStandMovement {
+
+            float originalYaw;
+
+            public ArmorStandRotationMovement(ArmorStand armorStand, BukkitTask task) {
+                super(armorStand);
+                this.task = task;
+                this.originalYaw = armorStand.getLocation().getYaw();
             }
         }
     }

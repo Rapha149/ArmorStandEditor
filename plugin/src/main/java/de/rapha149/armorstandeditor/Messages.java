@@ -50,7 +50,7 @@ public class Messages {
         messageConfig.addDefault("armorstands.items.offhand", "&dLeft Hand [Slot]");
         messageConfig.addDefault("armorstands.move.title.color_activated", "&d&l");
         messageConfig.addDefault("armorstands.move.title.color_deactivated", "&7");
-        messageConfig.addDefault("armorstands.move.title.text", "%color_normal%Normal: %normal% &7| %color_sneak%Sneaking: %sneak% &7| &7Left click: Finish | Right click: Cancel");
+        messageConfig.addDefault("armorstands.move.title.text", "%color_normal%Normal: %normal% &7| %color_sneak%Sneaking: %sneak% &7| Left click: Finish | Right click: Cancel");
         messageConfig.addDefault("armorstands.move.head.name", "&dMove head");
         messageConfig.addDefault("armorstands.move.head.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
         messageConfig.addDefault("armorstands.move.body.name", "&dMove body");
@@ -64,9 +64,9 @@ public class Messages {
         messageConfig.addDefault("armorstands.move.right_leg.name", "&dMove right leg");
         messageConfig.addDefault("armorstands.move.right_leg.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
         messageConfig.addDefault("armorstands.move_position.title.normal", "&dLeft click: Set down | Right click: Cancel");
-        messageConfig.addDefault("armorstands.move_position.title.snapin_color_unaligned_inactive", "&7");
-        messageConfig.addDefault("armorstands.move_position.title.snapin_color_unaligned_active", "&d");
-        messageConfig.addDefault("armorstands.move_position.title.snapin", "&dScroll: Distance (%distance%) &7| %unaligned_color%Sneaking: Unaligned &7| Left click: Finish | Right click: Cancel");
+        messageConfig.addDefault("armorstands.move_position.title.snapin_color_aligned_inactive", "&7");
+        messageConfig.addDefault("armorstands.move_position.title.snapin_color_aligned_active", "&d");
+        messageConfig.addDefault("armorstands.move_position.title.snapin", "&dScroll: Distance (%distance%) &7| %aligned_color%Sneaking: Aligned &7| Left click: Finish | Right click: Cancel");
         messageConfig.addDefault("armorstands.move_position.name", "&dMove");
         messageConfig.addDefault("armorstands.move_position.lore", """
                 &7» Left click ➜ Move the armor stand
@@ -90,6 +90,15 @@ public class Messages {
                 &7» Right click ➜ Move the armor stand by -0.05 blocks
                 &7» Drop ➜ Move the armor stand with snap-in positions
                 &7   (look at particles to move the armor stand)""");
+        messageConfig.addDefault("armorstands.rotate.title", "&dLeft click: Finish &7| &dRight click: Cancel");
+        messageConfig.addDefault("armorstands.rotate.name", "&dRotate");
+        messageConfig.addDefault("armorstands.rotate.lore", """
+                &7» Current rotation ➜ &d%rotation%
+                &7» Left click ➜ Rotate &d45° &7clockwise
+                &7» Right click ➜ Rotate &d45° &7counterclockwise
+                &7» Shift + Left click ➜ Rotate &d10° &7clockwise
+                &7» Shift + Right click ➜ Rotate &d10° &7counterclockwise
+                &7» Drop ➜ Match the armor stand's rotation to yours""");
         messageConfig.addDefault("armorstands.private.name", "&dPrivate");
         messageConfig.addDefault("armorstands.private.lore.normal", "&7» Makes your armor stand accessible only to you\n&7» %status%");
         messageConfig.addDefault("armorstands.private.lore.admin_bypass", "&7» Makes your armor stand accessible only to you\n&7» %status%%player%");
