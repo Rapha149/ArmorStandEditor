@@ -98,7 +98,8 @@ public class Messages {
                 &7» Right click ➜ Rotate &d45° &7counterclockwise
                 &7» Shift + Left click ➜ Rotate &d10° &7clockwise
                 &7» Shift + Right click ➜ Rotate &d10° &7counterclockwise
-                &7» Drop ➜ Match the armor stand's rotation to yours""");
+                &7» Drop ➜ Match the armor stand's rotation to yours
+                &7» Ctrl + Drop ➜ Reset rotation""");
         messageConfig.addDefault("armorstands.private.name", "&dPrivate");
         messageConfig.addDefault("armorstands.private.lore.normal", "&7» Makes your armor stand accessible only to you\n&7» %status%");
         messageConfig.addDefault("armorstands.private.lore.admin_bypass", "&7» Makes your armor stand accessible only to you\n&7» %status%%player%");

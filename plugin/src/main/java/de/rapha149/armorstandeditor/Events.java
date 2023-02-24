@@ -343,11 +343,16 @@ public class Events implements Listener, Runnable {
                     gui.close(player);
                     startRotationMovement(player, armorStand);
                 } else {
-                    int amount = event.isShiftClick() ? 10 : 45;
-                    if (event.isRightClick())
-                        amount *= -1;
-                    armorStand.setRotation(armorStand.getLocation().getYaw() + amount, armorStand.getLocation().getPitch());
-                    playStepSound(player);
+                    if (event.getClick() == ClickType.CONTROL_DROP) {
+                        armorStand.setRotation(0, armorStand.getLocation().getPitch());
+                        playExperienceSound(player);
+                    } else {
+                        int amount = event.isShiftClick() ? 10 : 45;
+                        if (event.isRightClick())
+                            amount *= -1;
+                        armorStand.setRotation(armorStand.getLocation().getYaw() + amount, armorStand.getLocation().getPitch());
+                        playStepSound(player);
+                    }
 
                     gui.updateItem(2, 8, applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.ENDER_EYE),
                             getMessage("armorstands.rotate.name"), getMessage("armorstands.rotate.lore").replace("%rotation%",
@@ -666,16 +671,36 @@ public class Events implements Listener, Runnable {
 
         if (!snapIn) {
             moving.put(player, new ArmorStandPositionMovement(armorStand, Bukkit.getScheduler().runTaskTimer(ArmorStandEditor.getInstance(), () -> {
-                if (player.getWorld().getUID().equals(armorStand.getWorld().getUID()))
-                    armorStand.teleport(getRelativeArmorStandPosition(player, armorStand));
+                if (player.getWorld().getUID().equals(armorStand.getWorld().getUID())) {
+                    Location playerLoc = player.getLocation();
+                    Location loc = playerLoc.clone().add(playerLoc.getDirection().multiply(3));
+                    loc.setYaw(armorStand.getLocation().getYaw());
+                    loc.setPitch(armorStand.getLocation().getPitch());
+                    loc.setY(playerLoc.getY());
+
+                    Location aboveBlock = loc.clone();
+                    for (int i = 0; i < 3; i++) {
+                        Block block = aboveBlock.getBlock();
+                        if (block.isPassable()) {
+                            loc = aboveBlock;
+                            break;
+                        }
+
+                        aboveBlock.setY(block.getRelative(BlockFace.UP).getLocation().getY());
+                    }
+
+                    armorStand.teleport(loc);
+                }
             }, 0, 1)));
         } else {
             long time = System.currentTimeMillis();
 
             ArmorStandPositionSnapInMovement movement = new ArmorStandPositionSnapInMovement(armorStand, null);
             movement.task = Bukkit.getScheduler().runTaskTimer(ArmorStandEditor.getInstance(), () -> {
-                Location center = movement.getCurrentLocation();
+                if (!player.getWorld().getUID().equals(armorStand.getWorld().getUID()))
+                    return;
 
+                Location center = movement.getCurrentLocation();
                 List<Location> locations = movement.locations;
                 if (locations.isEmpty()) {
                     locations.add(center);
@@ -754,8 +779,10 @@ public class Events implements Listener, Runnable {
 
         ArmorStandPositionSnapInMovement movement = new ArmorStandPositionSnapInMovement(armorStand, axis);
         movement.task = Bukkit.getScheduler().runTaskTimer(ArmorStandEditor.getInstance(), () -> {
-            Location center = movement.getCurrentLocation();
+            if (!player.getWorld().getUID().equals(armorStand.getWorld().getUID()))
+                return;
 
+            Location center = movement.getCurrentLocation();
             List<Location> locations = movement.locations;
             if (locations.isEmpty()) {
                 locations.add(center);
@@ -899,8 +926,10 @@ public class Events implements Listener, Runnable {
 
         // remove when player is far away
         moving.entrySet().removeIf(entry -> {
+            Player player = entry.getKey();
             ArmorStandMovement movement = entry.getValue();
-            if (entry.getKey().getLocation().distanceSquared(movement.armorStand.getLocation()) > 2500) {
+            ArmorStand armorStand = movement.armorStand;
+            if (!player.getWorld().getUID().equals(armorStand.getWorld().getUID()) || player.getLocation().distanceSquared(armorStand.getLocation()) > 2500) {
                 movement.task.cancel();
                 cancelMovement(movement);
                 return true;
@@ -1076,25 +1105,6 @@ public class Events implements Listener, Runnable {
             playExperienceSound(player);
         } else
             playArmorStandBreakSound(player);
-    }
-
-    private Location getRelativeArmorStandPosition(Player player, ArmorStand armorStand) {
-        Location playerLoc = player.getLocation();
-        Location loc = playerLoc.clone().add(playerLoc.getDirection().multiply(3));
-        loc.setY(playerLoc.getY());
-
-        Location aboveBlock = loc.clone();
-        for (int i = 0; i < 3; i++) {
-            Block block = aboveBlock.getBlock();
-            if (block.isPassable()) {
-                loc = aboveBlock;
-                break;
-            }
-
-            aboveBlock.setY(block.getRelative(BlockFace.UP).getLocation().getY());
-        }
-
-        return loc.setDirection(playerLoc.clone().subtract(armorStand.getLocation()).toVector());
     }
 
     private ItemBuilder applyNameAndLore(ItemBuilder builder, String key) {
