@@ -87,6 +87,11 @@ features:
     enabled: true
     permission: null
 
+  # Changing the armor stand's rotation.
+  rotate:
+    enabled: true
+    permission: null
+
   # Making your armor stand private so that only you can open its ASE inventory.
   privateArmorstand:
     enabled: true
