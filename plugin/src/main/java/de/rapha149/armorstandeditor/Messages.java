@@ -63,24 +63,33 @@ public class Messages {
         messageConfig.addDefault("armorstands.move.left_leg.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
         messageConfig.addDefault("armorstands.move.right_leg.name", "&dMove right leg");
         messageConfig.addDefault("armorstands.move.right_leg.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
-        messageConfig.addDefault("armorstands.position.title", "&dLeft click: Set down | Right click: Cancel");
-        messageConfig.addDefault("armorstands.position.name", "&dMove");
-        messageConfig.addDefault("armorstands.position.lore", "&7» Click, to move the armor stand");
-        messageConfig.addDefault("armorstands.position.x.name", "&dMove (X)");
-        messageConfig.addDefault("armorstands.position.x.lore", """
+        messageConfig.addDefault("armorstands.move_position.title.normal", "&dLeft click: Set down | Right click: Cancel");
+        messageConfig.addDefault("armorstands.move_position.title.snapin_color_unaligned_inactive", "&7");
+        messageConfig.addDefault("armorstands.move_position.title.snapin_color_unaligned_active", "&d");
+        messageConfig.addDefault("armorstands.move_position.title.snapin", "&dScroll: Distance (%distance%) &7| %unaligned_color%Sneaking: Unaligned &7| Left click: Finish | Right click: Cancel");
+        messageConfig.addDefault("armorstands.move_position.name", "&dMove");
+        messageConfig.addDefault("armorstands.move_position.lore", """
+                &7» Left click ➜ Move the armor stand
+                &7» Right click ➜ Move the armor stand with snap-in positions
+                &7   (look at particles to move the armor stand)""");
+        messageConfig.addDefault("armorstands.move_position.x.name", "&dMove (X)");
+        messageConfig.addDefault("armorstands.move_position.x.lore", """
                 &7» Left click ➜ Move the armor stand by 0.05 blocks
                 &7» Right click ➜ Move the armor stand by -0.05 blocks
-                &7» Drop ➜ Move the armor stand with your head movements""");
-        messageConfig.addDefault("armorstands.position.y.name", "&dMove (Y)");
-        messageConfig.addDefault("armorstands.position.y.lore", """
+                &7» Drop ➜ Move the armor stand with snap-in positions
+                &7   (look at particles to move the armor stand)""");
+        messageConfig.addDefault("armorstands.move_position.y.name", "&dMove (Y)");
+        messageConfig.addDefault("armorstands.move_position.y.lore", """
                 &7» Left click ➜ Move the armor stand by 0.05 blocks
                 &7» Right click ➜ Move the armor stand by -0.05 blocks
-                &7» Drop ➜ Move the armor stand with your head movements""");
-        messageConfig.addDefault("armorstands.position.z.name", "&dMove (Z)");
-        messageConfig.addDefault("armorstands.position.z.lore", """
+                &7» Drop ➜ Move the armor stand with snap-in positions
+                &7   (look at particles to move the armor stand)""");
+        messageConfig.addDefault("armorstands.move_position.z.name", "&dMove (Z)");
+        messageConfig.addDefault("armorstands.move_position.z.lore", """
                 &7» Left click ➜ Move the armor stand by 0.05 blocks
                 &7» Right click ➜ Move the armor stand by -0.05 blocks
-                &7» Drop ➜ Move the armor stand with your head movements""");
+                &7» Drop ➜ Move the armor stand with snap-in positions
+                &7   (look at particles to move the armor stand)""");
         messageConfig.addDefault("armorstands.private.name", "&dPrivate");
         messageConfig.addDefault("armorstands.private.lore.normal", "&7» Makes your armor stand accessible only to you\n&7» %status%");
         messageConfig.addDefault("armorstands.private.lore.admin_bypass", "&7» Makes your armor stand accessible only to you\n&7» %status%%player%");

@@ -6,6 +6,7 @@ import de.rapha149.armorstandeditor.Config.FeaturesData.ReplaceEquipmentFeatureD
 import de.rapha149.armorstandeditor.Config.PermissionsData;
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandBodyPartMovement;
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandPositionMovement;
+import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandPositionMovement.ArmorStandPositionSnapInMovement;
 import de.rapha149.armorstandeditor.version.BodyPart;
 import de.rapha149.armorstandeditor.version.Direction;
 import de.rapha149.armorstandeditor.version.VersionWrapper;
@@ -22,12 +23,16 @@ import net.wesjd.anvilgui.AnvilGUI;
 import net.wesjd.anvilgui.AnvilGUI.Builder;
 import net.wesjd.anvilgui.AnvilGUI.ResponseAction;
 import org.bukkit.*;
+import org.bukkit.Particle.DustOptions;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.*;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.ArmorStand.LockType;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -46,6 +51,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.EulerAngle;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -60,6 +66,8 @@ public class Events implements Listener, Runnable {
 
     private final NamespacedKey PRIVATE_KEY = NamespacedKey.fromString("private", ArmorStandEditor.getInstance());
     private final String INVISIBLE_TAG = "ArmorStandEditor-Invisible";
+    private final List<Double> SNAP_IN_DISTANCES = List.of(0.5D, 1.0D, 1.5D, 2D, 3D, 4D, 5D);
+
     private Map<UUID, Long> armorItemsCooldown = new HashMap<>();
     private Map<Player, ArmorStandMovement> moving = new HashMap<>();
     private Map<Player, Entry<ArmorStand, Boolean>> vehicleSelection = new HashMap<>();
@@ -290,33 +298,33 @@ public class Events implements Listener, Runnable {
                 }
             }), features.moveBodyParts, player));
 
-            gui.setItem(4, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.FEATHER), "armorstands.position").asGuiItem(event -> {
+            gui.setItem(4, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.FEATHER), "armorstands.move_position").asGuiItem(event -> {
                 gui.close(player);
-                startMovePosition(player, armorStand);
+                startMovePosition(player, armorStand, event.isRightClick());
             }), features.movePosition, player));
 
-            gui.setItem(5, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.RED_DYE), "armorstands.position.x").asGuiItem(event -> {
+            gui.setItem(5, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.RED_DYE), "armorstands.move_position.x").asGuiItem(event -> {
                 if (event.getClick() == ClickType.DROP) {
                     gui.close(player);
-                    startMovePosition(player, armorStand, Axis.X);
+                    startSnapInMovePosition(player, armorStand, Axis.X);
                 } else {
                     armorStand.teleport(armorStand.getLocation().add(event.isLeftClick() ? 0.05 : -0.05, 0, 0));
                     playSound(player, Sound.BLOCK_ANVIL_STEP);
                 }
             }), features.movePosition, player));
-            gui.setItem(5, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.LIME_DYE), "armorstands.position.y").asGuiItem(event -> {
+            gui.setItem(5, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.LIME_DYE), "armorstands.move_position.y").asGuiItem(event -> {
                 if (event.getClick() == ClickType.DROP) {
                     gui.close(player);
-                    startMovePosition(player, armorStand, Axis.Y);
+                    startSnapInMovePosition(player, armorStand, Axis.Y);
                 } else {
                     armorStand.teleport(armorStand.getLocation().add(0, event.isLeftClick() ? 0.05 : -0.05, 0));
                     playSound(player, Sound.BLOCK_ANVIL_STEP);
                 }
             }), features.movePosition, player));
-            gui.setItem(5, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.BLUE_DYE), "armorstands.position.z").asGuiItem(event -> {
+            gui.setItem(5, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.BLUE_DYE), "armorstands.move_position.z").asGuiItem(event -> {
                 if (event.getClick() == ClickType.DROP) {
                     gui.close(player);
-                    startMovePosition(player, armorStand, Axis.Z);
+                    startSnapInMovePosition(player, armorStand, Axis.Z);
                 } else {
                     armorStand.teleport(armorStand.getLocation().add(0, 0, event.isLeftClick() ? 0.05 : -0.05));
                     playSound(player, Sound.BLOCK_ANVIL_STEP);
@@ -627,43 +635,147 @@ public class Events implements Listener, Runnable {
         return moving.containsKey(player) || vehicleSelection.containsKey(player);
     }
 
-    private void startMovePosition(Player player, ArmorStand armorStand) {
+    private void startMovePosition(Player player, ArmorStand armorStand, boolean snapIn) {
         UUID uuid = armorStand.getUniqueId();
         if (isPlayerDoingSomethingOutsideOfInv(player) || moving.values().stream().anyMatch(movement -> movement.armorStand.getUniqueId().equals(uuid))) {
             player.sendMessage(getMessage("not_possible_now"));
             return;
         }
 
-        moving.put(player, new ArmorStandPositionMovement(armorStand, Bukkit.getScheduler().runTaskTimer(ArmorStandEditor.getInstance(), () -> {
-            if (player.getWorld().getUID().equals(armorStand.getWorld().getUID()))
-                armorStand.teleport(getRelativeArmorStandPosition(player, armorStand));
-        }, 0, 1), armorStand.getLocation()));
+        if (!snapIn) {
+            moving.put(player, new ArmorStandPositionMovement(armorStand, Bukkit.getScheduler().runTaskTimer(ArmorStandEditor.getInstance(), () -> {
+                if (player.getWorld().getUID().equals(armorStand.getWorld().getUID()))
+                    armorStand.teleport(getRelativeArmorStandPosition(player, armorStand));
+            }, 0, 1)));
+        } else {
+            long time = System.currentTimeMillis();
+
+            ArmorStandPositionSnapInMovement movement = new ArmorStandPositionSnapInMovement(armorStand, null);
+            movement.task = Bukkit.getScheduler().runTaskTimer(ArmorStandEditor.getInstance(), () -> {
+                Location center = movement.getCurrentLocation();
+
+                List<Location> locations = movement.locations;
+                if (locations.isEmpty()) {
+                    locations.add(center);
+
+                    double distance = movement.distance;
+                    int count = 0;
+                    double coveredDistance = 0;
+                    while (count < 3 || coveredDistance < 3) {
+                        count++;
+                        coveredDistance += distance;
+
+                        double minX = center.getX() - coveredDistance, maxX = center.getX() + coveredDistance,
+                                minZ = center.getZ() - coveredDistance, maxZ = center.getZ() + coveredDistance;
+
+                        double x = minX, z = minZ;
+                        for (; x <= maxX; x += distance)
+                            locations.add(new Location(center.getWorld(), x, center.getY(), z, center.getYaw(), center.getPitch()));
+                        x -= distance;
+                        for (; z <= maxZ; z += distance)
+                            locations.add(new Location(center.getWorld(), x, center.getY(), z, center.getYaw(), center.getPitch()));
+                        z -= distance;
+                        for (; x >= minX; x -= distance)
+                            locations.add(new Location(center.getWorld(), x, center.getY(), z, center.getYaw(), center.getPitch()));
+                        x += distance;
+                        for (; z > minZ; z -= distance)
+                            locations.add(new Location(center.getWorld(), x, center.getY(), z, center.getYaw(), center.getPitch()));
+                    }
+                }
+
+                DustOptions options = new DustOptions(Color.fromRGB(255, 0, 0), 0.5F);
+                for (Location loc : locations)
+                    player.spawnParticle(Particle.REDSTONE, loc, 1, options);
+
+                if (System.currentTimeMillis() > time + 1000) {
+                    Location eyeLoc = player.getEyeLocation();
+                    Vector eyeVec = eyeLoc.toVector();
+                    double currentDot = 0.999;
+                    Location closest = null;
+                    for (Location loc : locations) {
+                        double dot = loc.toVector().subtract(eyeVec).normalize().dot(eyeLoc.getDirection());
+                        if (dot > currentDot) {
+                            currentDot = dot;
+                            closest = loc;
+                        }
+                    }
+
+                    if (closest != null && !closest.equals(center)) {
+                        armorStand.teleport(closest);
+                        movement.updateOffset(closest);
+                        locations.clear();
+                    } else
+                        armorStand.teleport(center);
+                } else
+                    armorStand.teleport(center);
+            }, 0, 1);
+
+            moving.put(player, movement);
+        }
+
         run();
     }
 
-    private void startMovePosition(Player player, ArmorStand armorStand, Axis axis) {
+    private void startSnapInMovePosition(Player player, ArmorStand armorStand, Axis axis) {
         UUID uuid = armorStand.getUniqueId();
         if (isPlayerDoingSomethingOutsideOfInv(player) || moving.values().stream().anyMatch(movement -> movement.armorStand.getUniqueId().equals(uuid))) {
             player.sendMessage(getMessage("not_possible_now"));
             return;
         }
 
-        float yaw = player.getLocation().getYaw();
-        boolean normalizeYaw = yaw <= -90 || yaw >= 90;
-        float playerStart = axis.getYawOrPitch(player.getLocation(), normalizeYaw);
-        double armorStandStart = axis.getValue(armorStand.getLocation());
-        boolean negate = axis.shouldNegate(playerStart);
+        long time = System.currentTimeMillis();
 
-        moving.put(player, new ArmorStandPositionMovement(armorStand, Bukkit.getScheduler().runTaskTimer(ArmorStandEditor.getInstance(), () -> {
-            float playerCurrent = axis.getYawOrPitch(player.getLocation(), normalizeYaw);
-            double difference = (playerCurrent - playerStart) / 60D;
-            if (negate)
-                difference = -difference;
+        ArmorStandPositionSnapInMovement movement = new ArmorStandPositionSnapInMovement(armorStand, axis);
+        movement.task = Bukkit.getScheduler().runTaskTimer(ArmorStandEditor.getInstance(), () -> {
+            Location center = movement.getCurrentLocation();
 
-            Location loc = armorStand.getLocation().clone();
-            axis.setValue(loc, armorStandStart + difference);
-            armorStand.teleport(loc);
-        }, 0, 1), armorStand.getLocation()));
+            List<Location> locations = movement.locations;
+            if (locations.isEmpty()) {
+                locations.add(center);
+
+                double distance = movement.distance;
+                int count = 0;
+                double coveredDistance = 0;
+                Location plus = center.clone(), minus = center.clone();
+                while (count < 3 || coveredDistance < 5) {
+                    count++;
+                    coveredDistance += distance;
+
+                    axis.setValue(plus, axis.getValue(plus) + distance);
+                    axis.setValue(minus, axis.getValue(minus) - distance);
+                    locations.add(plus.clone());
+                    locations.add(minus.clone());
+                }
+            }
+
+            DustOptions options = new DustOptions(Color.fromRGB(255, 0, 0), 0.5F);
+            for (Location loc : locations)
+                player.spawnParticle(Particle.REDSTONE, loc, 1, options);
+
+            if (System.currentTimeMillis() > time + 1000) {
+                Location eyeLoc = player.getEyeLocation();
+                Vector eyeVec = eyeLoc.toVector();
+                double currentDot = 0.999;
+                Location closest = null;
+                for (Location loc : locations) {
+                    double dot = loc.toVector().subtract(eyeVec).normalize().dot(eyeLoc.getDirection());
+                    if (dot > currentDot) {
+                        currentDot = dot;
+                        closest = loc;
+                    }
+                }
+
+                if (closest != null && !closest.equals(center)) {
+                    armorStand.teleport(closest);
+                    movement.updateOffset(closest);
+                    locations.clear();
+                } else
+                    armorStand.teleport(center);
+            } else
+                armorStand.teleport(center);
+        }, 0, 1);
+
+        moving.put(player, movement);
         run();
     }
 
@@ -712,10 +824,19 @@ public class Events implements Listener, Runnable {
     @Override
     public void run() {
         moving.forEach((player, movement) -> {
-            if (movement instanceof ArmorStandPositionMovement)
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(getMessage("armorstands.position.title")));
-            else if (movement instanceof ArmorStandBodyPartMovement) {
-                BodyPart bodyPart = ((ArmorStandBodyPartMovement) movement).bodyPart;
+            if (movement instanceof ArmorStandPositionMovement) {
+                String message;
+                if (movement instanceof ArmorStandPositionSnapInMovement snapInMovement) {
+                    message = getMessage("armorstands.move_position.title.snapin")
+                            .replace("%distance%", String.valueOf(snapInMovement.distance))
+                            .replace("%unaligned_color%", getMessage("armorstands.move_position.title.snapin_color_unaligned_" +
+                                                                     (player.isSneaking() ? "active" : "inactive")));
+                } else
+                    message = getMessage("armorstands.move_position.title.normal");
+
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
+            } else if (movement instanceof ArmorStandBodyPartMovement bodyPartMovement) {
+                BodyPart bodyPart = bodyPartMovement.bodyPart;
                 String activated = getMessage("armorstands.move.title.color_activated"),
                         deactivated = getMessage("armorstands.move.title.color_deactivated");
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(getMessage("armorstands.move.title.text")
@@ -740,14 +861,58 @@ public class Events implements Listener, Runnable {
     }
 
     @EventHandler
+    public void onHotbarSlot(PlayerItemHeldEvent event) {
+        Player player = event.getPlayer();
+        if (!moving.containsKey(player) || !(moving.get(player) instanceof ArmorStandPositionSnapInMovement movement))
+            return;
+
+        int index = SNAP_IN_DISTANCES.indexOf(movement.distance);
+        int previous = event.getPreviousSlot(), current = event.getNewSlot();
+        if (previous == 8 && current == 0)
+            index++;
+        else if (previous == 0 && current == 8)
+            index--;
+        else if (current > previous)
+            index++;
+        else if (current < previous)
+            index--;
+
+        if (index < 0 || index > SNAP_IN_DISTANCES.size() - 1) {
+            playBassSound(player);
+            return;
+        }
+
+        playSound(player, Sound.BLOCK_WOODEN_BUTTON_CLICK_ON);
+        movement.distance = SNAP_IN_DISTANCES.get(index);
+        movement.locations.clear();
+        run();
+    }
+
+    @EventHandler
     public void onToggleSneak(PlayerToggleSneakEvent event) {
         Player player = event.getPlayer();
-        if (moving.containsKey(player) && moving.get(player) instanceof ArmorStandBodyPartMovement movement) {
-            Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), this);
+        if (!moving.containsKey(player))
+            return;
+
+        Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), this);
+        ArmorStandMovement movement = moving.get(player);
+        if (movement instanceof ArmorStandPositionSnapInMovement snapInMovement) {
+            snapInMovement.locations.clear();
+
+            Location loc = snapInMovement.getCurrentLocation().getBlock().getLocation();
+            if (!event.isSneaking())
+                loc.add(0.5, 0, 0.5);
+            else if (snapInMovement.axis == null) {
+                double[] alignmentXZ = snapInMovement.previousAlignmentXZ;
+                loc.add(alignmentXZ[0], 0, alignmentXZ[1]);
+            } else
+                snapInMovement.axis.setValue(loc, snapInMovement.axis.getValue(loc) + snapInMovement.previousAlignmentSingle);
+            snapInMovement.updateOffset(loc);
+        } else if (movement instanceof ArmorStandBodyPartMovement bodyPartMovement) {
             Location loc = player.getLocation();
-            movement.zeroYaw = loc.getYaw();
-            movement.zeroPitch = loc.getPitch();
-            movement.zeroAngle = movement.bodyPart.get(movement.armorStand);
+            bodyPartMovement.zeroYaw = loc.getYaw();
+            bodyPartMovement.zeroPitch = loc.getPitch();
+            bodyPartMovement.zeroAngle = bodyPartMovement.bodyPart.get(bodyPartMovement.armorStand);
         }
     }
 
@@ -817,7 +982,7 @@ public class Events implements Listener, Runnable {
 
     private void cancelMovement(ArmorStandMovement movement) {
         if (movement instanceof ArmorStandPositionMovement)
-            movement.armorStand.teleport(((ArmorStandPositionMovement) movement).cancelLocation);
+            movement.armorStand.teleport(((ArmorStandPositionMovement) movement).originalLocation);
         else if (movement instanceof ArmorStandBodyPartMovement bodyPartMovement)
             bodyPartMovement.bodyPart.apply(movement.armorStand, bodyPartMovement.cancelAngle);
     }
@@ -1229,38 +1394,20 @@ public class Events implements Listener, Runnable {
             };
         }
 
+        double getBlockValue(Location loc) {
+            return switch (this) {
+                case X -> loc.getBlockX();
+                case Y -> loc.getBlockY();
+                case Z -> loc.getBlockZ();
+            };
+        }
+
         void setValue(Location loc, double value) {
             switch (this) {
                 case X -> loc.setX(value);
                 case Y -> loc.setY(value);
                 case Z -> loc.setZ(value);
             }
-        }
-
-        float getYawOrPitch(Location loc, boolean normalizeYaw) {
-            return switch (this) {
-                case X, Z -> {
-                    float yaw = loc.getYaw();
-                    if (normalizeYaw)
-                        while (yaw < 0)
-                            yaw += 360;
-                    yield yaw;
-                }
-                case Y -> loc.getPitch();
-            };
-        }
-
-        boolean shouldNegate(float yaw) {
-            while (yaw < 0)
-                yaw += 360;
-            while (yaw > 360)
-                yaw -= 360;
-
-            return switch (this) {
-                case X -> yaw > 270 || yaw < 90;
-                case Y -> true;
-                case Z -> yaw < 180;
-            };
         }
     }
 
@@ -1298,12 +1445,56 @@ public class Events implements Listener, Runnable {
 
         static class ArmorStandPositionMovement extends ArmorStandMovement {
 
-            Location cancelLocation;
+            Location originalLocation;
 
-            public ArmorStandPositionMovement(ArmorStand armorStand, BukkitTask task, Location cancelLocation) {
+            public ArmorStandPositionMovement(ArmorStand armorStand, BukkitTask task) {
                 super(armorStand);
                 this.task = task;
-                this.cancelLocation = cancelLocation;
+                this.originalLocation = armorStand.getLocation();
+            }
+
+            static class ArmorStandPositionSnapInMovement extends ArmorStandPositionMovement {
+
+                Axis axis;
+                double[] previousAlignmentXZ;
+                double previousAlignmentSingle;
+                double[] offsetXZ;
+                double offsetSingle;
+                double distance = 1;
+                List<Location> locations = new ArrayList<>();
+
+                public ArmorStandPositionSnapInMovement(ArmorStand armorStand, Axis axis) {
+                    super(armorStand, null);
+                    this.axis = axis;
+
+                    Location loc = armorStand.getLocation();
+                    Location center = loc.getBlock().getLocation().add(0.5, 0, 0.5);
+
+                    if (axis == null) {
+                        previousAlignmentXZ = new double[]{loc.getX() - loc.getBlockX(), loc.getZ() - loc.getBlockZ()};
+                        offsetXZ = new double[]{center.getX() - loc.getX(), center.getZ() - loc.getZ()};
+                    } else {
+                        previousAlignmentSingle = axis.getValue(loc) - axis.getBlockValue(loc);
+                        offsetSingle = axis.getValue(center) - axis.getValue(loc);
+                    }
+                }
+
+                public Location getCurrentLocation() {
+                    Location loc = originalLocation.clone();
+                    if (axis == null)
+                        loc.add(offsetXZ[0], 0, offsetXZ[1]);
+                    else
+                        axis.setValue(loc, axis.getValue(loc) + offsetSingle);
+                    return loc;
+                }
+
+                public void updateOffset(Location current) {
+                    if (axis == null) {
+                        offsetXZ[0] = current.getX() - originalLocation.getX();
+                        offsetXZ[1] = current.getZ() - originalLocation.getZ();
+                    } else
+                        offsetSingle = axis.getValue(current) - axis.getValue(originalLocation);
+                }
             }
         }
 
