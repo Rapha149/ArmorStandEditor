@@ -6,6 +6,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
 public class Messages {
@@ -17,6 +18,7 @@ public class Messages {
         messageFile = new File(ArmorStandEditor.getInstance().getDataFolder(), "messages.yml");
         messageConfig = new YamlConfiguration();
         messageConfig.options().copyDefaults(true);
+        messageConfig.options().copyHeader(false);
 
         messageConfig.addDefault("prefix", "&dArmorStandEditor &7» §r");
         messageConfig.addDefault("plugin.enable", "Plugin successfully enabled.");
@@ -31,23 +33,34 @@ public class Messages {
         messageConfig.addDefault("armorstands.no_permission", "%prefix%&cYou can't edit this armor stand.");
         messageConfig.addDefault("armorstands.already_open", "%prefix%&cThis armor stand is already being edited at the moment.");
         messageConfig.addDefault("armorstands.features.deactivated", "&cNot available." +
-                                                              "\n&cThis feature is disabled.");
+                                                                     "\n&cThis feature is disabled.");
         messageConfig.addDefault("armorstands.features.no_permission", "&cNot available." +
-                                                              "\n&cYou can't use this feature.");
+                                                                       "\n&cYou can't use this feature.");
         messageConfig.addDefault("armorstands.title.normal", "&5Armor Stand");
         messageConfig.addDefault("armorstands.title.admin_bypass", "&5Armor Stand (Admin Bypass)");
         messageConfig.addDefault("armorstands.page.first", "&7» [1/2]");
         messageConfig.addDefault("armorstands.page.second", "&7« [2/2]");
         messageConfig.addDefault("armorstands.status.on", "&aOn&7/Off");
         messageConfig.addDefault("armorstands.status.off", "&7On/&cOff");
-        messageConfig.addDefault("armorstands.items.lore", "&7» Click, to replace with item.");
-        messageConfig.addDefault("armorstands.items.cooldown", "%prefix%&ePlease slow down a little bit.");
-        messageConfig.addDefault("armorstands.items.helmet", "&dHead [Slot]");
-        messageConfig.addDefault("armorstands.items.chestplate", "&dChestplate [Slot]");
-        messageConfig.addDefault("armorstands.items.leggings", "&dLeggings [Slot]");
-        messageConfig.addDefault("armorstands.items.boots", "&dBoots [Slot]");
-        messageConfig.addDefault("armorstands.items.mainhand", "&dRight Hand [Slot]");
-        messageConfig.addDefault("armorstands.items.offhand", "&dLeft Hand [Slot]");
+        messageConfig.addDefault("armorstands.equipment.name", "&dEquipment ➜");
+        messageConfig.addDefault("armorstands.equipment.lore", """
+                &7» Change the equipment using the
+                &7   slots to the right of this item.
+                &7» Changes take effect as soon as
+                &7   the inventory or the page is closed.
+                &7» Slots:
+                &#ff1e00   1. Helmet
+                &#ff7300   2. Chestplate
+                &#ffbf00   3. Leggings
+                &#65ff06   4. Boots
+                &#00ffd9   5. Right Hand
+                &#0289ff   6. Left Hand
+                &7» Layout:
+                &#ff1e00       &l1
+                &#00ffd9    &l5 &#ff7300&l2 &#0289ff&l6
+                &#ffbf00       &l3
+                &#65ff06       &l4""");
+        messageConfig.addDefault("armorstands.equipment.invalid", "%prefix%&cYou tried to equip invalid armor items.");
         messageConfig.addDefault("armorstands.move.title.color_activated", "&d&l");
         messageConfig.addDefault("armorstands.move.title.color_deactivated", "&7");
         messageConfig.addDefault("armorstands.move.title.text", "%color_normal%Normal: %normal% &7| %color_sneak%Sneaking: %sneak% &7| Left click: Finish | Right click: Cancel");
@@ -129,13 +142,13 @@ public class Messages {
         messageConfig.addDefault("armorstands.settings.fire.lore", "&7» Click to toggle visual fire\n&7» %status%");
         messageConfig.addDefault("armorstands.passenger.name", "&dArmor stand as passenger");
         messageConfig.addDefault("armorstands.passenger.lore", "&7» Left click ➜ Set on vehicle" +
-                                                                "\n&7» Right click ➜ Remove from vehicle");
+                                                               "\n&7» Right click ➜ Remove from vehicle");
         messageConfig.addDefault("armorstands.passenger.choose.title", "&dChoose a vehicle &7| &7Left click: Choose | Right click: Cancel");
         messageConfig.addDefault("armorstands.passenger.choose.no_players", "%prefix%&cYou can't choose a player.");
         messageConfig.addDefault("armorstands.passenger.choose.not_itself", "%prefix%&cYou can't choose the armor stand itself.");
         messageConfig.addDefault("armorstands.vehicle.name", "&dArmor stand as vehicle");
         messageConfig.addDefault("armorstands.vehicle.lore", "&7» Left click ➜ Choose passenger" +
-                                                                "\n&7» Right click ➜ Remove all passengers");
+                                                             "\n&7» Right click ➜ Remove all passengers");
         messageConfig.addDefault("armorstands.vehicle.choose.title", "&dChoose a passenger &7| &7Left click: Choose | Right click: Cancel");
         messageConfig.addDefault("armorstands.vehicle.choose.no_players", "%prefix%&cYou can't choose a player.");
         messageConfig.addDefault("armorstands.vehicle.choose.not_itself", "%prefix%&cYou can't choose the armor stand itself.");
@@ -160,7 +173,10 @@ public class Messages {
                     messageConfig.set(key, null);
             });
 
-            messageConfig.save(messageFile);
+            try (FileWriter writer = new FileWriter(messageFile)) {
+                writer.write("# ArmorStandEditor version " + ArmorStandEditor.getInstance().getDescription().getVersion() +
+                             "\n\n" + messageConfig.saveToString());
+            }
         } catch (IOException | InvalidConfigurationException e) {
             e.printStackTrace();
             ArmorStandEditor.getInstance().getLogger().severe("Failed to load message config.");

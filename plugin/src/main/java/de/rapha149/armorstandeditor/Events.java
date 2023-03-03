@@ -2,7 +2,6 @@ package de.rapha149.armorstandeditor;
 
 import de.rapha149.armorstandeditor.Config.FeaturesData;
 import de.rapha149.armorstandeditor.Config.FeaturesData.FeatureData;
-import de.rapha149.armorstandeditor.Config.FeaturesData.ReplaceEquipmentFeatureData;
 import de.rapha149.armorstandeditor.Config.PermissionsData;
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandBodyPartMovement;
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandPositionMovement;
@@ -12,12 +11,12 @@ import de.rapha149.armorstandeditor.version.BodyPart;
 import de.rapha149.armorstandeditor.version.Direction;
 import de.rapha149.armorstandeditor.version.VersionWrapper;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
-import dev.triumphteam.gui.components.util.ItemNbt;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.wesjd.anvilgui.AnvilGUI;
@@ -37,17 +36,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntityInteractEvent;
-import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.*;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
@@ -56,7 +51,7 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -66,12 +61,13 @@ import static de.rapha149.armorstandeditor.Messages.getMessage;
 public class Events implements Listener, Runnable {
 
     private VersionWrapper wrapper = ArmorStandEditor.getInstance().wrapper;
+    private LegacyComponentSerializer SERIALIZER = LegacyComponentSerializer.builder().hexColors().character('&').build();
 
     private final NamespacedKey PRIVATE_KEY = NamespacedKey.fromString("private", ArmorStandEditor.getInstance());
     private final String INVISIBLE_TAG = "ArmorStandEditor-Invisible";
     private final List<Double> SNAP_IN_DISTANCES = List.of(0.5D, 1.0D, 1.5D, 2D, 3D, 4D, 5D);
+    private final List<Integer> EQUIPMENT_SLOTS = List.of(11, 20, 29, 38, 19, 21);
 
-    private Map<UUID, Long> armorItemsCooldown = new HashMap<>();
     private Map<Player, ArmorStandMovement> moving = new HashMap<>();
     private Map<Player, Entry<ArmorStand, Boolean>> vehicleSelection = new HashMap<>();
 
@@ -85,7 +81,10 @@ public class Events implements Listener, Runnable {
 
     public void onDisable() {
         disabling = true;
-        invs.values().forEach(status -> status.player.closeInventory());
+        invs.values().forEach(status -> {
+            saveEquipment(status);
+            status.player.closeInventory();
+        });
         invs.clear();
         anvilInvs.values().forEach(AnvilGUI::closeInventory);
         anvilInvs.clear();
@@ -132,19 +131,8 @@ public class Events implements Listener, Runnable {
     @EventHandler
     public void onManipulate(PlayerArmorStandManipulateEvent event) {
         ArmorStand armorStand = event.getRightClicked();
-        invs.values().forEach(status -> {
-            if (!status.pageWithArmor || !armorStand.getUniqueId().equals(status.armorStand.getUniqueId()))
-                return;
-
-            ItemStack[] equipment = getEquipment(armorStand, status.player);
-            status.gui.setItem(2, 3, ItemBuilder.from(equipment[0]).asGuiItem());
-            status.gui.setItem(3, 3, ItemBuilder.from(equipment[1]).asGuiItem());
-            status.gui.setItem(4, 3, ItemBuilder.from(equipment[2]).asGuiItem());
-            status.gui.setItem(5, 3, ItemBuilder.from(equipment[3]).asGuiItem());
-            status.gui.setItem(3, 2, ItemBuilder.from(equipment[4]).asGuiItem());
-            status.gui.setItem(3, 4, ItemBuilder.from(equipment[5]).asGuiItem());
-            status.gui.update();
-        });
+        if (invs.values().stream().anyMatch(status -> armorStand.getUniqueId().equals(status.armorStand.getUniqueId())))
+            event.setCancelled(true);
     }
 
     private boolean isArmorStandUsed(Player exclude, ArmorStand armorStand) {
@@ -186,25 +174,13 @@ public class Events implements Listener, Runnable {
 
         Gui gui = Gui.gui().title(Component.text(getMessage("armorstands.title." + (adminBypass ? "admin_bypass" : "normal")))).rows(6).create();
 
-        ItemStack[] equipment = getEquipment(armorStand, player);
         List<EquipmentSlot> disabled = Arrays.stream(EquipmentSlot.values()).filter(slot -> Arrays.stream(LockType.values())
                 .allMatch(type -> armorStand.hasEquipmentLock(slot, type))).collect(Collectors.toList());
         boolean[] settings = getSettings(armorStand);
-        ArmorStandStatus status = new ArmorStandStatus(player, armorStand, gui, pageWithArmor, equipment, disabled, settings);
+        ArmorStandStatus status = new ArmorStandStatus(player, armorStand, gui, pageWithArmor, disabled, settings);
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(ArmorStandEditor.getInstance(), () -> {
-            if (pageWithArmor) {
-                ItemStack[] currentEquipment = getEquipment(armorStand, player);
-                if (!Arrays.equals(currentEquipment, status.equipment)) {
-                    gui.updateItem(2, 3, ItemBuilder.from(currentEquipment[0]).asGuiItem());
-                    gui.updateItem(3, 3, ItemBuilder.from(currentEquipment[1]).asGuiItem());
-                    gui.updateItem(4, 3, ItemBuilder.from(currentEquipment[2]).asGuiItem());
-                    gui.updateItem(5, 3, ItemBuilder.from(currentEquipment[3]).asGuiItem());
-                    gui.updateItem(3, 2, ItemBuilder.from(currentEquipment[4]).asGuiItem());
-                    gui.updateItem(3, 4, ItemBuilder.from(currentEquipment[5]).asGuiItem());
-                    status.equipment = currentEquipment;
-                }
-            } else {
+            if (!pageWithArmor) {
                 boolean update = false;
                 List<EquipmentSlot> currentDisabled = Arrays.stream(EquipmentSlot.values()).filter(slot -> Arrays.stream(LockType.values())
                         .allMatch(type -> armorStand.hasEquipmentLock(slot, type))).collect(Collectors.toList());
@@ -232,6 +208,9 @@ public class Events implements Listener, Runnable {
             }
         }, 40, 40);
         gui.setCloseGuiAction(event -> {
+            if (pageWithArmor)
+                saveEquipment(status);
+
             task.cancel();
             if (invs.containsKey(player) && invs.get(player).time == status.time)
                 invs.remove(player);
@@ -241,12 +220,43 @@ public class Events implements Listener, Runnable {
         if (pageWithArmor) {
             setPrivateItem(player, gui, armorStand, adminBypass);
 
-            gui.setItem(2, 3, ItemBuilder.from(equipment[0]).asGuiItem());
-            gui.setItem(3, 3, ItemBuilder.from(equipment[1]).asGuiItem());
-            gui.setItem(4, 3, ItemBuilder.from(equipment[2]).asGuiItem());
-            gui.setItem(5, 3, ItemBuilder.from(equipment[3]).asGuiItem());
-            gui.setItem(3, 2, ItemBuilder.from(equipment[4]).asGuiItem());
-            gui.setItem(3, 4, ItemBuilder.from(equipment[5]).asGuiItem());
+            gui.setItem(2, 2, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.GOLDEN_HELMET), "armorstands.equipment").asGuiItem(),
+                    features.replaceEquipment, player));
+            EntityEquipment equipment = armorStand.getEquipment();
+            ItemStack[] equipmentItems = {equipment.getHelmet(),
+                    equipment.getChestplate(),
+                    equipment.getLeggings(),
+                    equipment.getBoots(),
+                    equipment.getItemInMainHand(),
+                    equipment.getItemInOffHand()};
+
+            if (isDeactivated(features.replaceEquipment, player)) {
+                for (int i = 0; i < EQUIPMENT_SLOTS.size(); i++)
+                    gui.setItem(EQUIPMENT_SLOTS.get(i), ItemBuilder.from(equipmentItems[i]).asGuiItem(event -> playBassSound(player)));
+
+                gui.disableAllInteractions();
+            } else {
+                EQUIPMENT_SLOTS.forEach(slot -> gui.setItem(slot, ItemBuilder.from(Material.AIR).asGuiItem()));
+                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> {
+                    Inventory inv = gui.getInventory();
+                    for (int i = 0; i < EQUIPMENT_SLOTS.size(); i++)
+                        inv.setItem(EQUIPMENT_SLOTS.get(i), equipmentItems[i]);
+                    status.saveEquipment = true;
+                });
+
+                gui.setDragAction(event -> {
+                    for (Integer slot : event.getInventorySlots()) {
+                        if (!EQUIPMENT_SLOTS.contains(slot)) {
+                            event.setCancelled(true);
+                            break;
+                        }
+                    }
+                });
+                gui.setDefaultTopClickAction(event -> {
+                    if (!EQUIPMENT_SLOTS.contains(event.getRawSlot()))
+                        event.setCancelled(true);
+                });
+            }
 
             gui.setItem(2, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.PLAYER_HEAD), "armorstands.move.head").asGuiItem(event -> {
                 if (event.isLeftClick()) {
@@ -361,146 +371,11 @@ public class Events implements Listener, Runnable {
             }), features.rotate, player));
 
             gui.setItem(6, 9, ItemBuilder.from(Material.SPECTRAL_ARROW).name(Component.text(getMessage("armorstands.page.first"))).asGuiItem(event -> {
+                saveEquipment(status);
+
                 Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, false));
                 playSound(player, Sound.ITEM_BOOK_PAGE_TURN);
             }));
-
-            gui.setDragAction(event -> {
-                if (event.getRawSlots().stream().anyMatch(slot -> slot <= 53))
-                    event.setCancelled(true);
-            });
-            gui.setDefaultClickAction(event -> {
-                if (event.getRawSlot() >= 54 && event.isShiftClick())
-                    event.setCancelled(true);
-            });
-
-            gui.setDefaultTopClickAction(event -> {
-                boolean applyCooldown = true;
-                Material type = event.getCursor().getType();
-                ItemStack cursor;
-                if (event.getClick() == ClickType.NUMBER_KEY) {
-                    cursor = Optional.ofNullable(player.getInventory().getItem(event.getHotbarButton())).orElseGet(() -> new ItemStack(Material.AIR));
-                } else if (event.getCurrentItem() != null && ItemNbt.removeTag(event.getCursor().clone(), "mf-gui")
-                        .isSimilar(ItemNbt.removeTag(event.getCurrentItem().clone(), "mf-gui"))) {
-                    cursor = event.getCurrentItem().clone();
-                    cursor.setAmount(cursor.getAmount() + (event.isLeftClick() ? event.getCursor().getAmount() : 1));
-                    applyCooldown = event.isLeftClick();
-                } else if (event.isRightClick()) {
-                    if (type == Material.AIR) {
-                        if (event.getCurrentItem() != null) {
-                            cursor = event.getCurrentItem().clone();
-                            cursor.setAmount((int) (cursor.getAmount() / 2D));
-                        } else
-                            cursor = new ItemStack(Material.AIR);
-                    } else if (event.getCurrentItem() == null || ItemNbt.getString(event.getCurrentItem(), "empty_slot") != null) {
-                        cursor = event.getCursor().clone();
-                        cursor.setAmount(1);
-                    } else
-                        cursor = event.getCursor();
-                } else
-                    cursor = event.getCursor();
-                type = cursor.getType();
-
-                UUID uuid = armorStand.getUniqueId();
-                if (applyCooldown && armorItemsCooldown.containsKey(uuid)) {
-                    event.setCancelled(true);
-                    long time = System.currentTimeMillis();
-                    armorItemsCooldown.put(uuid, time);
-                    Bukkit.getScheduler().runTaskLater(ArmorStandEditor.getInstance(), () -> armorItemsCooldown.remove(uuid, time), 10);
-                    player.sendMessage(getMessage("armorstands.items.cooldown"));
-                    return;
-                }
-
-                if (!Arrays.asList(11, 19, 20, 21, 29, 38).contains(event.getRawSlot())) {
-                    event.setCancelled(true);
-                    return;
-                }
-
-                if (isDeactivated(features.replaceEquipment, player)) {
-                    event.setCancelled(true);
-                    playBassSound(player);
-                    return;
-                }
-
-                AtomicInteger index = new AtomicInteger(-1);
-                switch (event.getRawSlot()) {
-                    case 11:
-                        armorStand.getEquipment().setHelmet(cursor);
-                        index.set(0);
-                        status.equipment[0] = getEquipmentItem(EquipmentSlot.HEAD, cursor, player);
-                        break;
-                    case 19:
-                        armorStand.getEquipment().setItemInMainHand(cursor);
-                        index.set(4);
-                        status.equipment[4] = getEquipmentItem(EquipmentSlot.HAND, cursor, player);
-                        break;
-                    case 20:
-                        if (type == Material.AIR || type.toString().endsWith("_CHESTPLATE")) {
-                            armorStand.getEquipment().setChestplate(cursor);
-                            index.set(1);
-                            status.equipment[1] = getEquipmentItem(EquipmentSlot.CHEST, cursor, player);
-                        } else {
-                            event.setCancelled(true);
-                            playAnvilSound(player);
-                        }
-                        break;
-                    case 21:
-                        armorStand.getEquipment().setItemInOffHand(cursor);
-                        index.set(5);
-                        status.equipment[5] = getEquipmentItem(EquipmentSlot.OFF_HAND, cursor, player);
-                        break;
-                    case 29:
-                        if (type == Material.AIR || type.toString().endsWith("_LEGGINGS")) {
-                            armorStand.getEquipment().setLeggings(cursor);
-                            index.set(2);
-                            status.equipment[2] = getEquipmentItem(EquipmentSlot.LEGS, cursor, player);
-                        } else {
-                            event.setCancelled(true);
-                            playAnvilSound(player);
-                        }
-                        break;
-                    case 38:
-                        if (type == Material.AIR || type.toString().endsWith("_BOOTS")) {
-                            armorStand.getEquipment().setBoots(cursor);
-                            index.set(3);
-                            status.equipment[3] = getEquipmentItem(EquipmentSlot.FEET, cursor, player);
-                        } else {
-                            event.setCancelled(true);
-                            playAnvilSound(player);
-                        }
-                        break;
-                    default:
-                        event.setCancelled(true);
-                        break;
-                }
-
-                if (!event.isCancelled() && event.getCurrentItem() != null) {
-                    long time = System.currentTimeMillis();
-                    armorItemsCooldown.put(uuid, time);
-                    Bukkit.getScheduler().runTaskLater(ArmorStandEditor.getInstance(), () -> armorItemsCooldown.remove(uuid, time), 10);
-
-                    event.setCurrentItem(ItemNbt.getString(event.getCurrentItem(), "empty_slot") != null ?
-                            new ItemStack(Material.AIR) : ItemNbt.removeTag(event.getCurrentItem(), "mf-gui"));
-                    if (cursor.getType().isAir()) {
-                        Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () ->
-                                gui.updateItem(event.getRawSlot(), ItemBuilder.from(status.equipment[index.get()]).asGuiItem()));
-                    }
-
-                    invs.values().forEach(otherStatus -> {
-                        if (!otherStatus.pageWithArmor || !uuid.equals(otherStatus.armorStand.getUniqueId()) ||
-                            status.time == otherStatus.time) {
-                            return;
-                        }
-
-                        otherStatus.gui.updateItem(2, 3, ItemBuilder.from(status.equipment[0]).asGuiItem());
-                        otherStatus.gui.updateItem(3, 3, ItemBuilder.from(status.equipment[1]).asGuiItem());
-                        otherStatus.gui.updateItem(4, 3, ItemBuilder.from(status.equipment[2]).asGuiItem());
-                        otherStatus.gui.updateItem(5, 3, ItemBuilder.from(status.equipment[3]).asGuiItem());
-                        otherStatus.gui.updateItem(3, 2, ItemBuilder.from(status.equipment[4]).asGuiItem());
-                        otherStatus.gui.updateItem(3, 4, ItemBuilder.from(status.equipment[5]).asGuiItem());
-                    });
-                }
-            });
         } else {
             gui.disableAllInteractions();
 
@@ -584,11 +459,74 @@ public class Events implements Listener, Runnable {
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
         Entity entity = event.getEntity();
-        if (!(entity instanceof ArmorStand))
+        if (!(entity instanceof ArmorStand armorStand))
             return;
 
         UUID uuid = entity.getUniqueId();
-        new HashMap<>(invs).values().stream().filter(status -> status.armorStand.getUniqueId().equals(uuid)).forEach(status -> status.gui.close(status.player));
+        AtomicBoolean reloadDrops = new AtomicBoolean(false);
+        new HashMap<>(invs).values().stream().filter(status -> status.armorStand.getUniqueId().equals(uuid)).forEach(status -> {
+            if (saveEquipment(status))
+                reloadDrops.set(true);
+            status.gui.close(status.player);
+        });
+
+        if (reloadDrops.get()) {
+            List<ItemStack> drops = event.getDrops();
+            drops.clear();
+            drops.add(new ItemStack(Material.ARMOR_STAND));
+
+            EntityEquipment equipment = armorStand.getEquipment();
+            drops.add(equipment.getHelmet());
+            drops.add(equipment.getChestplate());
+            drops.add(equipment.getLeggings());
+            drops.add(equipment.getBoots());
+            drops.add(equipment.getItemInMainHand());
+            drops.add(equipment.getItemInOffHand());
+        }
+    }
+
+    private boolean saveEquipment(ArmorStandStatus status) {
+        if (!status.saveEquipment)
+            return false;
+        status.saveEquipment = false;
+
+        Player player = status.player;
+        ArmorStand armorStand = status.armorStand;
+        Gui gui = status.gui;
+
+        Inventory inv = gui.getInventory();
+        List<ItemStack> newItems = EQUIPMENT_SLOTS.stream().map(slot -> Optional.ofNullable(inv.getItem(slot)).orElseGet(() -> new ItemStack(Material.AIR))).toList();
+
+        EntityEquipment equipment = armorStand.getEquipment();
+        equipment.setHelmet(newItems.get(0));
+        equipment.setItemInMainHand(newItems.get(4));
+        equipment.setItemInOffHand(newItems.get(5));
+
+        AtomicBoolean messageSent = new AtomicBoolean(false);
+        Map.of(1, "CHESTPLATE",
+                2, "LEGGINGS",
+                3, "BOOTS").forEach((slot, type) -> {
+            ItemStack item = newItems.get(slot);
+            if (!item.getType().isAir() && !item.getType().toString().endsWith("_" + type)) {
+                for (ItemStack drop : player.getInventory().addItem(item).values())
+                    player.getWorld().dropItem(player.getLocation(), drop);
+
+                if (!messageSent.get()) {
+                    messageSent.set(true);
+                    player.sendMessage(getMessage("armorstands.equipment.invalid"));
+                    playBassSound(player);
+                }
+
+                item = new ItemStack(Material.AIR);
+            }
+            switch (slot) {
+                case 1 -> equipment.setChestplate(item);
+                case 2 -> equipment.setLeggings(item);
+                case 3 -> equipment.setBoots(item);
+            }
+        });
+
+        return true;
     }
 
     private boolean isDeactivated(FeatureData feature, Player player) {
@@ -625,37 +563,6 @@ public class Events implements Listener, Runnable {
                 .map(line -> (Component) Component.text(line)).collect(Collectors.toList()));
 
         return builder.setNbt("deactivated", true).asGuiItem(event -> playBassSound(player));
-    }
-
-    private ItemStack checkDeactivated(ItemStack item, FeatureData feature, Player player) {
-        boolean noPermission = false;
-        if (feature.enabled) {
-            noPermission = true;
-            if (feature.permission == null || player.hasPermission(feature.permission))
-                return item;
-        }
-
-        String deactivatedItem = Config.get().deactivatedItem;
-        Material mat;
-        if (deactivatedItem == null)
-            mat = item.getType();
-        else {
-            mat = Material.matchMaterial(deactivatedItem);
-            if (mat == null)
-                mat = Material.FIREWORK_STAR;
-        }
-
-        ItemStack newItem = new ItemStack(mat);
-        if (mat == Material.AIR)
-            return newItem;
-
-        ItemMeta meta = newItem.getItemMeta();
-        if (item.hasItemMeta() && item.getItemMeta().hasDisplayName())
-            meta.setDisplayName(item.getItemMeta().getDisplayName());
-        meta.setLore(Arrays.asList(getMessage("armorstands.features." + (noPermission ? "no_permission" : "deactivated")).split("\n")));
-
-        newItem.setItemMeta(meta);
-        return ItemNbt.setBoolean(newItem, "deactivated", true);
     }
 
     private boolean isPlayerDoingSomethingOutsideOfInv(Player player) {
@@ -1120,9 +1027,9 @@ public class Events implements Listener, Runnable {
     }
 
     private ItemBuilder applyNameAndLoreWithoutKeys(ItemBuilder builder, String name, String lore, boolean status) {
-        return builder.name(Component.text(name))
+        return builder.name(SERIALIZER.deserialize(name).decoration(TextDecoration.ITALIC, false))
                 .lore(Arrays.stream(lore.replace("%status%", getMessage("armorstands.status." + (status ? "on" : "off")))
-                        .split("\n")).map(line -> (Component) Component.text(line)).collect(Collectors.toList()));
+                        .split("\n")).map(line -> SERIALIZER.deserialize(line).decoration(TextDecoration.ITALIC, false)).collect(Collectors.toList()));
     }
 
     private void setPrivateItem(Player player, Gui gui, ArmorStand armorStand, boolean adminBypass) {
@@ -1376,22 +1283,133 @@ public class Events implements Listener, Runnable {
         }), Config.get().features.rename, player));
     }
 
-    private ItemStack[] getEquipment(ArmorStand armorStand, Player player) {
+    /*private void setEquipmentItem(Player player, ArmorStandStatus status, Gui gui, EquipmentSlot slot) {
+        int index, row, col;
+        switch (slot) {
+            case HEAD:
+                index = 0;
+                row = 2;
+                col = 3;
+                break;
+            case CHEST:
+                index = 1;
+                row = 3;
+                col = 3;
+                break;
+            case LEGS:
+                index = 2;
+                row = 4;
+                col = 3;
+                break;
+            case FEET:
+                index = 3;
+                row = 5;
+                col = 3;
+                break;
+            case HAND:
+                index = 4;
+                row = 3;
+                col = 2;
+                break;
+            case OFF_HAND:
+                index = 5;
+                row = 3;
+                col = 4;
+                break;
+            default:
+                return;
+        }
+
+        AtomicBoolean eventFired = new AtomicBoolean(false);
+        ItemStack current = status.equipment[index];
+        if (current == null || current.getType().isAir()) {
+            String key = switch (slot) {
+                case HEAD -> "helmet";
+                case CHEST -> "chestplate";
+                case LEGS -> "leggings";
+                case FEET -> "boots";
+                case HAND -> "mainhand";
+                case OFF_HAND -> "offhand";
+            };
+
+            gui.updateItem(row, col, applyNameAndLore(ItemBuilder.from(Material.WHITE_STAINED_GLASS_PANE),
+                    "armorstands.equipment." + key, "armorstands.equipment.lore", false).asGuiItem(event -> {
+                ArmorStandEditor.getInstance().getLogger().info("Clicked empty slot");
+                if (eventFired.get()) {
+                    event.setCancelled(true);
+                    return;
+                }
+                eventFired.set(true);
+
+                ItemStack item;
+                if (event.getClick() == ClickType.NUMBER_KEY) {
+                    item = player.getInventory().getItem(event.getHotbarButton());
+                    item = item == null ? new ItemStack(Material.AIR) : item.clone();
+                } else {
+                    item = event.getCursor().clone();
+                    if (event.isRightClick())
+                        item.setAmount(1);
+                }
+
+                event.setCancelled(false);
+                event.setCurrentItem(new ItemStack(Material.AIR));
+                status.notCancelled.add(event.hashCode());
+                status.equipment[index] = ItemNbt.removeTag(item, "mf-gui");
+                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> setEquipmentItem(player, status, gui, slot));
+            }));
+        } else {
+            gui.updateItem(row, col, ItemBuilder.from(current).asGuiItem(event -> {
+                ArmorStandEditor.getInstance().getLogger().info("Clicked full slot");
+                if (eventFired.get()) {
+                    event.setCancelled(true);
+                    return;
+                }
+                eventFired.set(true);
+
+                ItemStack item;
+                ItemStack cursor = event.getCursor();
+                if (event.getClick() == ClickType.NUMBER_KEY) {
+                    item = player.getInventory().getItem(event.getHotbarButton());
+                    item = item == null ? new ItemStack(Material.AIR) : item.clone();
+                } else if (cursor.isSimilar(current)) {
+                    item = current.clone();
+                    item.setAmount(item.getAmount() + (event.isLeftClick() ? cursor.getAmount() : 1));
+                } else if (event.isRightClick() && cursor.getType() == Material.AIR) {
+                    if (cursor.getType() == Material.AIR) {
+                        item = current.clone();
+                        item.setAmount((int) (item.getAmount() / 2D));
+                    } else
+                        item = cursor.clone();
+                } else
+                    item = cursor.clone();
+
+                event.setCancelled(false);
+                event.setCurrentItem(status.equipment[index].clone());
+                status.notCancelled.add(event.hashCode());
+                status.equipment[index] = ItemNbt.removeTag(item, "mf-gui");
+                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> setEquipmentItem(player, status, gui, slot));
+            }));
+        }
+    }*/
+
+    /*private ItemStack[] getEquipment(ArmorStand armorStand, Player player, boolean glassPanes) {
         EntityEquipment equipment = armorStand.getEquipment();
-        return new ItemStack[]{getEquipmentItem(EquipmentSlot.HEAD, equipment.getHelmet(), player),
-                getEquipmentItem(EquipmentSlot.CHEST, equipment.getChestplate(), player),
-                getEquipmentItem(EquipmentSlot.LEGS, equipment.getLeggings(), player),
-                getEquipmentItem(EquipmentSlot.FEET, equipment.getBoots(), player),
-                getEquipmentItem(EquipmentSlot.HAND, equipment.getItemInMainHand(), player),
-                getEquipmentItem(EquipmentSlot.OFF_HAND, equipment.getItemInOffHand(), player)};
+        return new ItemStack[]{getEquipmentItem(EquipmentSlot.HEAD, equipment.getHelmet(), player, glassPanes),
+                getEquipmentItem(EquipmentSlot.CHEST, equipment.getChestplate(), player, glassPanes),
+                getEquipmentItem(EquipmentSlot.LEGS, equipment.getLeggings(), player, glassPanes),
+                getEquipmentItem(EquipmentSlot.FEET, equipment.getBoots(), player, glassPanes),
+                getEquipmentItem(EquipmentSlot.HAND, equipment.getItemInMainHand(), player, glassPanes),
+                getEquipmentItem(EquipmentSlot.OFF_HAND, equipment.getItemInOffHand(), player, glassPanes)};
     }
 
-    private ItemStack getEquipmentItem(EquipmentSlot slot, ItemStack current, Player player) {
+    private ItemStack getEquipmentItem(EquipmentSlot slot, ItemStack current, Player player, boolean glassPanes) {
         ReplaceEquipmentFeatureData feature = Config.get().features.replaceEquipment;
         boolean deactivated = isDeactivated(feature, player);
 
         if (current != null && !current.getType().isAir() && (!deactivated || !feature.useDeactivatedItem))
             return current;
+        if (!glassPanes)
+            return new ItemStack(Material.AIR);
 
         ItemStack item = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
         ItemMeta meta = item.getItemMeta();
@@ -1405,12 +1423,12 @@ public class Events implements Listener, Runnable {
             case OFF_HAND -> "offhand";
         };
 
-        meta.setDisplayName(getMessage("armorstands.items." + key));
-        meta.setLore(Arrays.asList(getMessage("armorstands.items.lore").split("\n")));
+        meta.setDisplayName(getMessage("armorstands.equipment." + key));
+        meta.setLore(Arrays.asList(getMessage("armorstands.equipment.lore").split("\n")));
         item.setItemMeta(meta);
 
         return ItemNbt.setString(checkDeactivated(item, feature, player), "empty_slot", "");
-    }
+    }*/
 
     private boolean[] getSettings(ArmorStand armorStand) {
         return new boolean[]{armorStand.isInvisible(),
@@ -1494,17 +1512,16 @@ public class Events implements Listener, Runnable {
         ArmorStand armorStand;
         Gui gui;
         boolean pageWithArmor;
-        ItemStack[] equipment;
         List<EquipmentSlot> disabled;
         boolean[] settings;
+        boolean saveEquipment = false;
 
-        ArmorStandStatus(Player player, ArmorStand armorStand, Gui gui, boolean pageWithArmor, ItemStack[] equipment, List<EquipmentSlot> disabled, boolean[] settings) {
+        ArmorStandStatus(Player player, ArmorStand armorStand, Gui gui, boolean pageWithArmor, List<EquipmentSlot> disabled, boolean[] settings) {
             this.time = System.currentTimeMillis();
             this.player = player;
             this.armorStand = armorStand;
             this.gui = gui;
             this.pageWithArmor = pageWithArmor;
-            this.equipment = equipment;
             this.disabled = disabled;
             this.settings = settings;
         }
