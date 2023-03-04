@@ -1,9 +1,8 @@
 # ArmorStandEditor
 A Minecraft plugin to edit armor stands simply by interacting with them.
 
-![inventory page 1](https://user-images.githubusercontent.com/49787110/221316322-eab0a8cf-4c87-4236-99ff-5fb5339670c9.png)
+![inventory page 1](https://user-images.githubusercontent.com/49787110/222918545-5b2e58b4-7420-40dc-80d7-9c0c1cc8f54a.png)
 ![inventory page 2](https://user-images.githubusercontent.com/49787110/220210919-40dfba04-afd5-4002-89d1-726121ab6058.png)
-
 
 ## Features
 
