@@ -6,9 +6,9 @@ import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandBodyPart
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandPositionMovement;
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandPositionMovement.ArmorStandPositionSnapInMovement;
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandRotationMovement;
-import de.rapha149.armorstandeditor.Util.Axis;
 import de.rapha149.armorstandeditor.version.BodyPart;
 import de.rapha149.armorstandeditor.version.Direction;
+import de.rapha149.armorstandeditor.version.Axis;
 import de.rapha149.armorstandeditor.version.VersionWrapper;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;

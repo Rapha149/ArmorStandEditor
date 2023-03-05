@@ -25,7 +25,9 @@ public interface VersionWrapper {
 
     void setCustomName(ArmorStand armorStand, String customName);
 
-    void resetArmorstandPosition(ArmorStand armorStand, BodyPart bodyPart);
+    void resetArmorStandBodyPart(ArmorStand armorStand, BodyPart bodyPart);
+
+    void resetArmorStandBodyPart(ArmorStand armorStand, BodyPart bodyPart, Axis axis);
 
     ItemStack getArmorstandItem(ArmorStand armorStand, NamespacedKey privateKey);
 

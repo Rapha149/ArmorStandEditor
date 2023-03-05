@@ -38,8 +38,8 @@ public class Messages {
                                                                        "\n&cYou can't use this feature.");
         messageConfig.addDefault("armorstands.title.normal", "&5Armor Stand");
         messageConfig.addDefault("armorstands.title.admin_bypass", "&5Armor Stand (Admin Bypass)");
-        messageConfig.addDefault("armorstands.page.first", "&7» [1/2]");
-        messageConfig.addDefault("armorstands.page.second", "&7« [2/2]");
+        messageConfig.addDefault("armorstands.page.forward", "&7» [%current%/%max%]");
+        messageConfig.addDefault("armorstands.page.back", "&7« [%current%/%max%]");
         messageConfig.addDefault("armorstands.status.on", "&aOn&7/Off");
         messageConfig.addDefault("armorstands.status.off", "&7On/&cOff");
         messageConfig.addDefault("armorstands.equipment.name", "&dEquipment ➜");
@@ -113,6 +113,64 @@ public class Messages {
                 &7» Shift + Right click ➜ Rotate &d10° &7counterclockwise
                 &7» Drop ➜ Match the armor stand's rotation to yours
                 &7» Ctrl + Drop ➜ Reset rotation""");
+        messageConfig.addDefault("armorstands.advanced_controls.open.name", "&dAdvanced Controls");
+        messageConfig.addDefault("armorstands.advanced_controls.open.lore", """
+                &7» Left click ➜ Open &oPosition &7Menu
+                &7» Right click ➜ Open &oRotation &7Menu
+                &7» Drop ➜ Open &oPose &7Menu""");
+        messageConfig.addDefault("armorstands.advanced_controls.leave.name", "&dLeave &oAdvanced Controls");
+        messageConfig.addDefault("armorstands.advanced_controls.leave.lore", "");
+        messageConfig.addDefault("armorstands.advanced_controls.title", "&5Advanced Controls » %menu%");
+        messageConfig.addDefault("armorstands.advanced_controls.deactivated", "&d%menu%");
+        messageConfig.addDefault("armorstands.advanced_controls.position.name", "Position");
+        messageConfig.addDefault("armorstands.advanced_controls.position.current.name", "&dCurrent position");
+        messageConfig.addDefault("armorstands.advanced_controls.position.current.lore", """
+                &7» X ➜ &d%position_x%
+                &7» Y ➜ &d%position_y%
+                &7» Z ➜ &d%position_z%""");
+        messageConfig.addDefault("armorstands.advanced_controls.position.align.label.name", "&dAlign »");
+        messageConfig.addDefault("armorstands.advanced_controls.position.align.label.lore", "");
+        messageConfig.addDefault("armorstands.advanced_controls.position.align.button.name", "&dAlign on %axis% axis");
+        messageConfig.addDefault("armorstands.advanced_controls.position.align.button.lore", "");
+        messageConfig.addDefault("armorstands.advanced_controls.position.move.label.name", "&dMove on %axis% axis »");
+        messageConfig.addDefault("armorstands.advanced_controls.position.move.label.lore", "");
+        messageConfig.addDefault("armorstands.advanced_controls.position.move.button.name", "&dMove on %axis% axis by %amount%");
+        messageConfig.addDefault("armorstands.advanced_controls.position.move.button.lore", "&7» Left click ➜ +%amount%" +
+                                                                                            "\n&7» Right click ➜ -%amount%");
+        messageConfig.addDefault("armorstands.advanced_controls.rotation.name", "Rotation");
+        messageConfig.addDefault("armorstands.advanced_controls.rotation.current.name", "&dCurrent rotation");
+        messageConfig.addDefault("armorstands.advanced_controls.rotation.current.lore", "&7» %rotation%°");
+        messageConfig.addDefault("armorstands.advanced_controls.rotation.set.label.name", "&dSet value »");
+        messageConfig.addDefault("armorstands.advanced_controls.rotation.set.label.lore", "");
+        messageConfig.addDefault("armorstands.advanced_controls.rotation.set.button.name", "&dSet to %value%°");
+        messageConfig.addDefault("armorstands.advanced_controls.rotation.set.button.lore", "&7» %alternative_value%°");
+        messageConfig.addDefault("armorstands.advanced_controls.rotation.change.label.name", "&dChange value »");
+        messageConfig.addDefault("armorstands.advanced_controls.rotation.change.label.lore", "");
+        messageConfig.addDefault("armorstands.advanced_controls.rotation.change.button.name", "&dChange by %amount%°");
+        messageConfig.addDefault("armorstands.advanced_controls.rotation.change.button.lore", "&7» Left click ➜ +%amount%°" +
+                                                                                              "\n&7» Right click ➜ -%amount%°");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.name", "Pose");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.name.head", "&dModify » Head");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.name.body", "&dModify » Body");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.name.left_leg", "&dModify » Left Leg");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.name.right_leg", "&dModify » Right Leg");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.name.left_arm", "&dModify » Left Arm");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.name.right_arm", "&dModify » Right Arm");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.lore", """
+                &7» Current X ➜ %pose_x%
+                &7» Current Y ➜ %pose_y%
+                &7» Current Z ➜ %pose_z%""");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.reset.label.name", "&dReset »");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.reset.label.lore", "");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.reset.button.default.name", "&dReset %axis%");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.reset.button.default.lore", "&7» Default position");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.reset.button.zero.name", "&dReset %axis%");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.reset.button.zero.lore", "&7» 0°");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.change.label.name", "&dChange %axis% »");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.change.label.lore", "");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.change.button.name", "&dChange %axis% by %amount%°");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.change.button.lore", "&7» Left click ➜ +%amount%°" +
+                                                                                          "\n&7» Right click ➜ -%amount%°");
         messageConfig.addDefault("armorstands.private.name", "&dPrivate");
         messageConfig.addDefault("armorstands.private.lore.normal", "&7» Makes your armor stand accessible only to you\n&7» %status%");
         messageConfig.addDefault("armorstands.private.lore.admin_bypass", "&7» Makes your armor stand accessible only to you\n&7» %status%%player%");

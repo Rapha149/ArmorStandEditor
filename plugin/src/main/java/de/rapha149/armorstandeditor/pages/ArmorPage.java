@@ -7,6 +7,7 @@ import de.rapha149.armorstandeditor.Events;
 import de.rapha149.armorstandeditor.Util;
 import de.rapha149.armorstandeditor.Util.ArmorStandStatus;
 import de.rapha149.armorstandeditor.version.BodyPart;
+import de.rapha149.armorstandeditor.version.Axis;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import net.kyori.adventure.text.Component;
@@ -21,9 +22,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.UUID;
 
-import de.rapha149.armorstandeditor.Util.Axis;
+import java.util.UUID;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
 import static de.rapha149.armorstandeditor.Util.EQUIPMENT_SLOTS;
@@ -82,7 +82,7 @@ public class ArmorPage extends Page {
                 gui.close(player);
                 Events.startMoveBodyPart(player, armorStand, BodyPart.HEAD);
             } else if (event.isRightClick()) {
-                wrapper.resetArmorstandPosition(armorStand, BodyPart.HEAD);
+                wrapper.resetArmorStandBodyPart(armorStand, BodyPart.HEAD);
                 Util.playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
@@ -91,7 +91,7 @@ public class ArmorPage extends Page {
                 gui.close(player);
                 Events.startMoveBodyPart(player, armorStand, BodyPart.RIGHT_ARM);
             } else if (event.isRightClick()) {
-                wrapper.resetArmorstandPosition(armorStand, BodyPart.RIGHT_ARM);
+                wrapper.resetArmorStandBodyPart(armorStand, BodyPart.RIGHT_ARM);
                 Util.playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
@@ -100,7 +100,7 @@ public class ArmorPage extends Page {
                 gui.close(player);
                 Events.startMoveBodyPart(player, armorStand, BodyPart.BODY);
             } else if (event.isRightClick()) {
-                wrapper.resetArmorstandPosition(armorStand, BodyPart.BODY);
+                wrapper.resetArmorStandBodyPart(armorStand, BodyPart.BODY);
                 Util.playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
@@ -109,7 +109,7 @@ public class ArmorPage extends Page {
                 gui.close(player);
                 Events.startMoveBodyPart(player, armorStand, BodyPart.LEFT_ARM);
             } else if (event.isRightClick()) {
-                wrapper.resetArmorstandPosition(armorStand, BodyPart.LEFT_ARM);
+                wrapper.resetArmorStandBodyPart(armorStand, BodyPart.LEFT_ARM);
                 Util.playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
@@ -118,7 +118,7 @@ public class ArmorPage extends Page {
                 gui.close(player);
                 Events.startMoveBodyPart(player, armorStand, BodyPart.RIGHT_LEG);
             } else if (event.isRightClick()) {
-                wrapper.resetArmorstandPosition(armorStand, BodyPart.RIGHT_LEG);
+                wrapper.resetArmorStandBodyPart(armorStand, BodyPart.RIGHT_LEG);
                 Util.playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
@@ -127,7 +127,7 @@ public class ArmorPage extends Page {
                 gui.close(player);
                 Events.startMoveBodyPart(player, armorStand, BodyPart.LEFT_LEG);
             } else if (event.isRightClick()) {
-                wrapper.resetArmorstandPosition(armorStand, BodyPart.LEFT_LEG);
+                wrapper.resetArmorStandBodyPart(armorStand, BodyPart.LEFT_LEG);
                 Util.playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
@@ -167,7 +167,7 @@ public class ArmorPage extends Page {
 
         gui.setItem(2, 8, checkDeactivated(applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.ENDER_EYE),
                 getMessage("armorstands.rotate.name"), getMessage("armorstands.rotate.lore").replace("%rotation%",
-                        String.valueOf(Math.round(armorStand.getLocation().getYaw() * 100F) / 100F)), false).asGuiItem(event -> {
+                        String.valueOf(Math.round(armorStand.getLocation().getYaw() * 100F) / 100F))).asGuiItem(event -> {
             if (event.getClick() == ClickType.DROP) {
                 gui.close(player);
                 Events.startRotationMovement(player, armorStand);
@@ -185,7 +185,7 @@ public class ArmorPage extends Page {
 
                 gui.updateItem(2, 8, applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.ENDER_EYE),
                         getMessage("armorstands.rotate.name"), getMessage("armorstands.rotate.lore").replace("%rotation%",
-                                String.valueOf(Math.round(armorStand.getLocation().getYaw() * 100F) / 100F)), false).build());
+                                String.valueOf(Math.round(armorStand.getLocation().getYaw() * 100F) / 100F))).build());
             }
         }), features.rotate, player));
 

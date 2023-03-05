@@ -1,6 +1,7 @@
 package de.rapha149.armorstandeditor.version;
 
 import net.kyori.adventure.text.Component;
+import net.minecraft.core.Vector3f;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -52,7 +53,7 @@ public class Wrapper1_17_R1 implements VersionWrapper {
     }
 
     @Override
-    public void resetArmorstandPosition(ArmorStand armorStand, BodyPart bodyPart) {
+    public void resetArmorStandBodyPart(ArmorStand armorStand, BodyPart bodyPart) {
         EntityArmorStand handle = ((CraftArmorStand) armorStand).getHandle();
         switch (bodyPart) {
             case HEAD -> handle.setHeadPose(defaultArmorStand.cg);
@@ -61,6 +62,54 @@ public class Wrapper1_17_R1 implements VersionWrapper {
             case RIGHT_ARM -> handle.setRightArmPose(defaultArmorStand.cj);
             case LEFT_LEG -> handle.setLeftLegPose(defaultArmorStand.ck);
             case RIGHT_LEG -> handle.setRightLegPose(defaultArmorStand.cl);
+        }
+    }
+
+    @Override
+    public void resetArmorStandBodyPart(ArmorStand armorStand, BodyPart bodyPart, Axis axis) {
+        EntityArmorStand handle = ((CraftArmorStand) armorStand).getHandle();
+        Vector3f currentAngle, defaultAngle;
+        switch (bodyPart) {
+            case HEAD:
+                currentAngle = handle.cg;
+                defaultAngle = defaultArmorStand.cg;
+                break;
+            case BODY:
+                currentAngle = handle.ch;
+                defaultAngle = defaultArmorStand.ch;
+                break;
+            case LEFT_ARM:
+                currentAngle = handle.ci;
+                defaultAngle = defaultArmorStand.ci;
+                break;
+            case RIGHT_ARM:
+                currentAngle = handle.cj;
+                defaultAngle = defaultArmorStand.cj;
+                break;
+            case LEFT_LEG:
+                currentAngle = handle.ck;
+                defaultAngle = defaultArmorStand.ck;
+                break;
+            case RIGHT_LEG:
+                currentAngle = handle.cl;
+                defaultAngle = defaultArmorStand.cl;
+                break;
+            default:
+                return;
+        }
+
+        Vector3f newAngle = switch (axis) {
+            case X -> new Vector3f(defaultAngle.getX(), currentAngle.getY(), currentAngle.getZ());
+            case Y -> new Vector3f(currentAngle.getX(), defaultAngle.getY(), currentAngle.getZ());
+            case Z -> new Vector3f(currentAngle.getX(), currentAngle.getY(), defaultAngle.getZ());
+        };
+        switch(bodyPart) {
+            case HEAD -> handle.setHeadPose(newAngle);
+            case BODY -> handle.setBodyPose(newAngle);
+            case LEFT_ARM -> handle.setLeftArmPose(newAngle);
+            case RIGHT_ARM -> handle.setRightArmPose(newAngle);
+            case LEFT_LEG -> handle.setLeftLegPose(newAngle);
+            case RIGHT_LEG -> handle.setRightLegPose(newAngle);
         }
     }
 

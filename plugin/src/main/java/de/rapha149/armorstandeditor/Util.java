@@ -1,10 +1,8 @@
 package de.rapha149.armorstandeditor;
 
 import de.rapha149.armorstandeditor.Config.PermissionsData;
-import de.rapha149.armorstandeditor.pages.ArmorPage;
-import de.rapha149.armorstandeditor.pages.Page;
+import de.rapha149.armorstandeditor.pages.*;
 import de.rapha149.armorstandeditor.pages.Page.GuiResult;
-import de.rapha149.armorstandeditor.pages.SettingsPage;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import net.kyori.adventure.text.Component;
@@ -30,6 +28,9 @@ public class Util {
 
     public static final Page armorPage = new ArmorPage();
     public static final Page settingsPage = new SettingsPage();
+    public static final Page advancedPositionPage = new AdvancedPositionPage();
+    public static final Page advancedRotationPage = new AdvancedRotationPage();
+    public static final Page advancedPosePage = new AdvancedPosePage();
 
     public static Map<Player, ArmorStandStatus> invs = new HashMap<>();
     public static Map<Long, AnvilGUI> anvilInvs = new HashMap<>();
@@ -74,10 +75,15 @@ public class Util {
             return;
         }
 
-        GuiResult result = (switch (page) {
+        GuiResult result = (!advancedControls ? switch (page) {
             case 1 -> armorPage;
             case 2 -> settingsPage;
             default -> throw new IllegalArgumentException("Invalid page: " + page);
+        } : switch (page) {
+            case 1 -> advancedPositionPage;
+            case 2 -> advancedRotationPage;
+            case 3 -> advancedPosePage;
+            default -> throw new IllegalArgumentException("Invalid advanced page: " + page);
         }).getGui(player, armorStand, adminBypass);
 
 /*            String key = "armorstands.advanced_controls." + switch (page) {
@@ -186,11 +192,11 @@ public class Util {
         UUID uuid = exclude.getUniqueId();
         UUID armorStandUuid = armorStand.getUniqueId();
         return invs.entrySet().stream().anyMatch(entry -> !entry.getKey().getUniqueId().equals(uuid) &&
-                                                               entry.getValue().armorStand.getUniqueId().equals(armorStandUuid)) ||
+                                                          entry.getValue().armorStand.getUniqueId().equals(armorStandUuid)) ||
                Events.moving.entrySet().stream().anyMatch(entry -> !entry.getKey().getUniqueId().equals(uuid) &&
-                                                            entry.getValue().armorStand.getUniqueId().equals(armorStandUuid)) ||
+                                                                   entry.getValue().armorStand.getUniqueId().equals(armorStandUuid)) ||
                Events.vehicleSelection.entrySet().stream().anyMatch(entry -> !entry.getKey().getUniqueId().equals(uuid) &&
-                                                                      entry.getValue().getKey().getUniqueId().equals(armorStandUuid));
+                                                                             entry.getValue().getKey().getUniqueId().equals(armorStandUuid));
     }
 
     public static boolean saveEquipment(ArmorStandStatus status) {
@@ -235,34 +241,6 @@ public class Util {
         });
 
         return true;
-    }
-
-    public enum Axis {
-        X, Y, Z;
-
-        public double getValue(Location loc) {
-            return switch (this) {
-                case X -> loc.getX();
-                case Y -> loc.getY();
-                case Z -> loc.getZ();
-            };
-        }
-
-        public double getBlockValue(Location loc) {
-            return switch (this) {
-                case X -> loc.getBlockX();
-                case Y -> loc.getBlockY();
-                case Z -> loc.getBlockZ();
-            };
-        }
-
-        public void setValue(Location loc, double value) {
-            switch (this) {
-                case X -> loc.setX(value);
-                case Y -> loc.setY(value);
-                case Z -> loc.setZ(value);
-            }
-        }
     }
 
     public static class ArmorStandStatus {
