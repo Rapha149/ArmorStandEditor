@@ -22,8 +22,6 @@ public final class ArmorStandEditor extends JavaPlugin {
 
     public VersionWrapper wrapper;
 
-    private Events events;
-
     @Override
     public void onEnable() {
         instance = this;
@@ -61,13 +59,13 @@ public final class ArmorStandEditor extends JavaPlugin {
         }
 
         new ReloadCommand(getCommand("asereload"));
-        getServer().getPluginManager().registerEvents(events = new Events(), this);
+        getServer().getPluginManager().registerEvents(new Events(), this);
         getLogger().info(getMessage("plugin.enable"));
     }
 
     @Override
     public void onDisable() {
-        events.onDisable();
+        Util.onDisable();
         getLogger().info(getMessage("plugin.disable"));
     }
 
