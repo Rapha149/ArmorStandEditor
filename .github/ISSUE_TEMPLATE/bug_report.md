@@ -26,7 +26,7 @@ If applicable, add screenshots to help explain your problem.
 **Server (please complete the following information):**
  - Server software: [e.g. Spigot, Paper]
  - Server version: [e.g. 1.19.2, 1.19.3]
- - Plugin version: [e.g. 1.4]
+ - Plugin version: [e.g. 1.5]
 
 **Additional context**
 Add any other context about the problem here.
