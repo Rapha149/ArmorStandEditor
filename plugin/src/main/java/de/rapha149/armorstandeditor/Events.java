@@ -48,7 +48,7 @@ import java.util.function.Consumer;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
 
-public class Events implements Listener, Runnable {
+public class Events implements Listener {
 
     private VersionWrapper wrapper = ArmorStandEditor.getInstance().wrapper;
 
@@ -59,7 +59,7 @@ public class Events implements Listener, Runnable {
     public static final Map<Player, Entry<ArmorStand, Boolean>> vehicleSelection = new HashMap<>();
 
     public Events() {
-        Bukkit.getScheduler().runTaskTimer(ArmorStandEditor.getInstance(), this, 0, 20);
+        Bukkit.getScheduler().runTaskTimer(ArmorStandEditor.getInstance(), Events::runTask, 0, 20);
     }
 
     @EventHandler
@@ -167,6 +167,11 @@ public class Events implements Listener, Runnable {
                         }
 
                         aboveBlock.setY(block.getRelative(BlockFace.UP).getLocation().getY());
+                    }
+
+                    if (player.isSneaking()) {
+                        loc.setX(loc.getBlockX() + 0.5);
+                        loc.setZ(loc.getBlockZ() + 0.5);
                     }
 
                     armorStand.teleport(loc);
@@ -371,53 +376,6 @@ public class Events implements Listener, Runnable {
         runTask();
     }
 
-    @Override
-    public void run() {
-        // titles
-        moving.forEach((player, movement) -> {
-            if (movement instanceof ArmorStandPositionMovement) {
-                String message;
-                if (movement instanceof ArmorStandPositionSnapInMovement snapInMovement) {
-                    message = getMessage("armorstands.move_position.title.snapin")
-                                      .replace("%distance%", String.valueOf(snapInMovement.distance))
-                                      .replace("%aligned_color%", getMessage("armorstands.move_position.title.snapin_color_aligned_" +
-                                                                             (player.isSneaking() ? "active" : "inactive")));
-                } else
-                    message = getMessage("armorstands.move_position.title.normal");
-
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
-            } else if (movement instanceof ArmorStandBodyPartMovement bodyPartMovement) {
-                BodyPart bodyPart = bodyPartMovement.bodyPart;
-                String activated = getMessage("armorstands.move_body_parts.title.color_activated"),
-                        deactivated = getMessage("armorstands.move_body_parts.title.color_deactivated");
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(getMessage("armorstands.move_body_parts.title.text")
-                        .replace("%normal%", bodyPart.normalYawDir.getString(bodyPart.normalPitchDir))
-                        .replace("%sneak%", bodyPart.sneakYawDir.getString(bodyPart.sneakPitchDir))
-                        .replace("%color_normal%", !player.isSneaking() ? activated : deactivated)
-                        .replace("%color_sneak%", player.isSneaking() ? activated : deactivated)));
-            } else if (movement instanceof ArmorStandRotationMovement) {
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(getMessage("armorstands.rotate.title")));
-            }
-        });
-
-        vehicleSelection.forEach((player, entry) -> player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                new TextComponent(getMessage("armorstands." + (entry.getValue() ? "passenger" : "vehicle") + ".choose.title"))));
-
-        // remove when player is far away
-        moving.entrySet().removeIf(entry -> {
-            Player player = entry.getKey();
-            ArmorStandMovement movement = entry.getValue();
-            ArmorStand armorStand = movement.armorStand;
-            if (!player.getWorld().getUID().equals(armorStand.getWorld().getUID()) || player.getLocation().distanceSquared(armorStand.getLocation()) > 2500) {
-                movement.task.cancel();
-                cancelMovement(movement);
-                return true;
-            }
-            return false;
-        });
-        vehicleSelection.entrySet().removeIf(entry -> entry.getKey().getLocation().distanceSquared(entry.getValue().getKey().getLocation()) > 2500);
-    }
-
     public static void runTask() {
         // titles
         moving.forEach((player, movement) -> {
@@ -425,11 +383,13 @@ public class Events implements Listener, Runnable {
                 String message;
                 if (movement instanceof ArmorStandPositionSnapInMovement snapInMovement) {
                     message = getMessage("armorstands.move_position.title.snapin")
-                                      .replace("%distance%", String.valueOf(snapInMovement.distance))
-                                      .replace("%aligned_color%", getMessage("armorstands.move_position.title.snapin_color_aligned_" +
-                                                                             (player.isSneaking() ? "active" : "inactive")));
-                } else
-                    message = getMessage("armorstands.move_position.title.normal");
+                            .replace("%distance%", String.valueOf(snapInMovement.distance))
+                            .replace("%aligned_color%", getMessage("armorstands.move_position.title.color_aligned_" +
+                                                                   (player.isSneaking() ? "active" : "inactive")));
+                } else {
+                    message = getMessage("armorstands.move_position.title.normal").replace("%aligned_color%",
+                            getMessage("armorstands.move_position.title.color_aligned_" + (player.isSneaking() ? "active" : "inactive")));
+                }
 
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
             } else if (movement instanceof ArmorStandBodyPartMovement bodyPartMovement) {
@@ -498,7 +458,7 @@ public class Events implements Listener, Runnable {
         Util.playSound(player, Sound.BLOCK_WOODEN_BUTTON_CLICK_ON);
         movement.distance = SNAP_IN_DISTANCES.get(index);
         movement.locations.clear();
-        run();
+        runTask();
     }
 
     @EventHandler
@@ -507,7 +467,7 @@ public class Events implements Listener, Runnable {
         if (!moving.containsKey(player))
             return;
 
-        Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), this);
+        Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), Events::runTask);
         ArmorStandMovement movement = moving.get(player);
         if (movement instanceof ArmorStandPositionSnapInMovement snapInMovement) {
             snapInMovement.locations.clear();
