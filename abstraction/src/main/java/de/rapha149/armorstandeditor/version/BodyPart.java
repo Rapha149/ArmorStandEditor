@@ -39,7 +39,7 @@ public enum BodyPart {
         return null;
     }
 
-    public void apply(ArmorStand armorStand, EulerAngle angle) {
+    public void set(ArmorStand armorStand, EulerAngle angle) {
         switch (this) {
             case HEAD:
                 armorStand.setHeadPose(angle);

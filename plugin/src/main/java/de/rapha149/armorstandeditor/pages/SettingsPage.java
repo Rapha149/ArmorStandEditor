@@ -5,7 +5,6 @@ import de.rapha149.armorstandeditor.Config;
 import de.rapha149.armorstandeditor.Config.FeaturesData;
 import de.rapha149.armorstandeditor.Config.FeaturesData.FeatureData;
 import de.rapha149.armorstandeditor.Events;
-import de.rapha149.armorstandeditor.Util;
 import de.rapha149.armorstandeditor.Util.ArmorStandStatus;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
@@ -15,6 +14,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.wesjd.anvilgui.AnvilGUI.Builder;
 import net.wesjd.anvilgui.AnvilGUI.ResponseAction;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.ArmorStand.LockType;
@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
+import static de.rapha149.armorstandeditor.Util.*;
 
 public class SettingsPage extends Page {
 
@@ -41,7 +42,7 @@ public class SettingsPage extends Page {
         FeaturesData features = Config.get().features;
         Gui gui = Gui.gui().title(Component.text(getMessage("armorstands.title." + (adminBypass ? "admin_bypass" : "normal"))))
                 .rows(6).disableAllInteractions().create();
-        ArmorStandStatus status = new ArmorStandStatus(player, armorStand, gui, PAGE_NUMBER, false);
+        ArmorStandStatus status = new ArmorStandStatus(player, armorStand, gui);
 
         List<EquipmentSlot> disabled = Arrays.stream(EquipmentSlot.values()).filter(slot -> Arrays.stream(LockType.values())
                 .allMatch(type -> armorStand.hasEquipmentLock(slot, type))).collect(Collectors.toList());
@@ -90,15 +91,16 @@ public class SettingsPage extends Page {
         gui.setItem(5, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.ARMOR_STAND), "armorstands.give_item").asGuiItem(event -> {
             PlayerInventory inv = player.getInventory();
             if (inv.firstEmpty() == -1) {
-                Util.playAnvilSound(player);
+                playAnvilSound(player);
                 return;
             }
 
             gui.close(player);
-            ItemStack item = wrapper.getArmorstandItem(armorStand, Util.PRIVATE_KEY);
-            armorStand.remove();
+            ItemStack item = wrapper.getArmorstandItem(armorStand, PRIVATE_KEY);
+            if (player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR)
+                armorStand.remove();
             inv.addItem(item);
-            Util.playArmorStandBreakSound(player);
+            playArmorStandBreakSound(player);
         }), features.giveItem, player));
 
         setRenameItem(player, armorStand, gui);
@@ -116,10 +118,10 @@ public class SettingsPage extends Page {
                         Events.runTask();
                     } else if (event.isRightClick()) {
                         if (armorStand.eject()) {
-                            Util.playExperienceSound(player);
+                            playExperienceSound(player);
                             gui.updateItem(4, 8, applyNameAndLore(ItemBuilder.from(Material.SADDLE), "armorstands.vehicle").glow(false).build());
                         } else
-                            Util.playBassSound(player);
+                            playBassSound(player);
                     }
                 }), features.vehicle, player));
 
@@ -136,10 +138,10 @@ public class SettingsPage extends Page {
                         Events.runTask();
                     } else if (event.isRightClick()) {
                         if (armorStand.leaveVehicle()) {
-                            Util.playExperienceSound(player);
+                            playExperienceSound(player);
                             gui.updateItem(5, 8, applyNameAndLore(ItemBuilder.from(Material.MINECART), "armorstands.passenger").glow(false).build());
                         } else
-                            Util.playBassSound(player);
+                            playBassSound(player);
                     }
                 }), features.passenger, player));
 
@@ -189,7 +191,7 @@ public class SettingsPage extends Page {
 
             gui.updateItem(row, col, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.HONEYCOMB), "armorstands.lock." + key,
                     "armorstands.lock.lore", disabled).glow(disabled).asGuiItem(event -> {
-                Util.playSpyglassSound(player);
+                playSpyglassSound(player);
                 if (disabled)
                     for (LockType type : LockType.values())
                         armorStand.removeEquipmentLock(slot, type);
@@ -270,7 +272,7 @@ public class SettingsPage extends Page {
         }
 
         gui.updateItem(row, col, checkDeactivated(applyNameAndLore(ItemBuilder.from(mat), "armorstands.settings." + key, enabled).glow(enabled).asGuiItem(event -> {
-            Util.playSpyglassSound(player);
+            playSpyglassSound(player);
 
             boolean newEnabled = !enabled;
             switch (index) {
@@ -313,19 +315,19 @@ public class SettingsPage extends Page {
                 String customNameEdit = wrapper.getCustomNameForEdit(armorStand);
                 String name = customNameEdit != null && !customNameEdit.isEmpty() ? customNameEdit : "Name...";
                 long time = System.currentTimeMillis();
-                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> Util.anvilInvs.put(time, new Builder().plugin(ArmorStandEditor.getInstance())
+                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> anvilInvs.put(time, new Builder().plugin(ArmorStandEditor.getInstance())
                         .title(getMessage("armorstands.rename.name"))
                         .text(name.substring(0, Math.min(50, name.length())))
                         .onClose(p -> {
-                            if (!Util.disabling) {
-                                Util.anvilInvs.remove(time);
-                                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> Util.openGUI(player, armorStand, PAGE_NUMBER, false));
+                            if (!disabling) {
+                                anvilInvs.remove(time);
+                                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, PAGE_NUMBER, false));
                             }
                         }).onComplete(completion -> {
                             wrapper.setCustomName(armorStand, completion.getText());
                             armorStand.setCustomNameVisible(true);
-                            Util.anvilInvs.remove(time);
-                            Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> Util.openGUI(player, armorStand, PAGE_NUMBER, false));
+                            anvilInvs.remove(time);
+                            Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, PAGE_NUMBER, false));
                             return Arrays.asList(ResponseAction.run(() -> {}));
                         }).open(player)));
             } else if (event.isRightClick()) {

@@ -1,5 +1,8 @@
 package de.rapha149.armorstandeditor;
 
+import de.rapha149.armorstandeditor.Config.PresetData.PresetBodyPartData;
+import de.rapha149.armorstandeditor.version.BodyPart;
+import org.bukkit.util.EulerAngle;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.Yaml;
@@ -7,10 +10,7 @@ import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -28,7 +28,7 @@ public class Config {
         comments.put("permissions.ignorePrivate", "With this permission, players can open private armor stands even if they wouldn't have access to them." +
                                                   "\nYou can set this permission to \"null\" to disable it, but it's not recommended as private armor stands would be available to everyone.");
         comments.put("deactivatedItem", "The item that is displayed when a feature is disabled." +
-                                     "\nSet to \"null\" to show the actual item of the feature even though it's disabled.");
+                                        "\nSet to \"null\" to show the actual item of the feature even though it's disabled.");
         comments.put("features", "A list of features. You can enable/disable each feature or set a permission to use a certain feature." +
                                  "\nIf you want a feature to be enabled and everybody to be able to use it, set the permission to \"null\".");
         comments.put("features.replaceEquipment", "Replacing the armor stand's equipment (armor and hand items) in the ASE inventory.");
@@ -56,6 +56,8 @@ public class Config {
         comments.put("features.giveItem", "Receiving your armor stand as an item.");
         comments.put("features.copy", "Copying your armor stand settings by combining a modified armor stand item with a normal armor stand item in the crafting table." +
                                       "\nThis behavior is similar to the copying behavior of written books.");
+        comments.put("presets", "Here you can define presets which are shown on the Pose page of the Advanced Controls." +
+                                "\nMaximum of 15 presets.");
     }
 
     public static void load() throws IOException {
@@ -126,6 +128,113 @@ public class Config {
     public PermissionsData permissions = new PermissionsData();
     public String deactivatedItem = "minecraft:gray_dye";
     public FeaturesData features = new FeaturesData();
+    public List<PresetData> presets = List.of(
+            new PresetData("Default", Map.of(
+                    BodyPart.LEFT_ARM, new PresetBodyPartData(-10, 0, -10),
+                    BodyPart.RIGHT_ARM, new PresetBodyPartData(-15, 0, 10),
+                    BodyPart.LEFT_LEG, new PresetBodyPartData(-1, 0, -1),
+                    BodyPart.RIGHT_LEG, new PresetBodyPartData(1, 0, 1)
+            )),
+            new PresetData("0°", Collections.emptyMap()),
+            new PresetData("Item", Map.of(
+                    BodyPart.HEAD, new PresetBodyPartData(0.8944604, 9.055486, 0),
+                    BodyPart.BODY, new PresetBodyPartData(0, -2.3101969, 0),
+                    BodyPart.RIGHT_ARM, new PresetBodyPartData(-90, 0, 0)
+            )),
+            new PresetData("Block", Map.of(
+                    BodyPart.HEAD, new PresetBodyPartData(2.739634, -5.375096, 0),
+                    BodyPart.BODY, new PresetBodyPartData(0, -0.29615206, 0),
+                    BodyPart.RIGHT_ARM, new PresetBodyPartData(-15, -45, 0)
+            )),
+            new PresetData("Walking", Map.of(
+                    BodyPart.HEAD, new PresetBodyPartData(5.883482, -19.316841, 0),
+                    BodyPart.BODY, new PresetBodyPartData(0, -1.3423482, 0),
+                    BodyPart.LEFT_ARM, new PresetBodyPartData(-20, 0, -10),
+                    BodyPart.RIGHT_ARM, new PresetBodyPartData(20, 0, 10),
+                    BodyPart.LEFT_LEG, new PresetBodyPartData(20, 0, 0),
+                    BodyPart.RIGHT_LEG, new PresetBodyPartData(-20, 0, 0)
+            )),
+            new PresetData("Running", Map.of(
+                    BodyPart.HEAD, new PresetBodyPartData(5.747715, 1.8663449, 0),
+                    BodyPart.BODY, new PresetBodyPartData(0, 1.5624547, 0),
+                    BodyPart.LEFT_ARM, new PresetBodyPartData(40, 0, -10),
+                    BodyPart.RIGHT_ARM, new PresetBodyPartData(-40, 0, 10),
+                    BodyPart.LEFT_LEG, new PresetBodyPartData(-40, 0, 0),
+                    BodyPart.RIGHT_LEG, new PresetBodyPartData(40, 0, 0)
+            )),
+            new PresetData("Pointing", Map.of(
+                    BodyPart.HEAD, new PresetBodyPartData(1.7437577, 19.371622, 0),
+                    BodyPart.BODY, new PresetBodyPartData(0, 2.9660754, 0),
+                    BodyPart.LEFT_ARM, new PresetBodyPartData(0, 0, -10),
+                    BodyPart.RIGHT_ARM, new PresetBodyPartData(-90, 18, 0),
+                    BodyPart.LEFT_LEG, new PresetBodyPartData(0, 0, 0),
+                    BodyPart.RIGHT_LEG, new PresetBodyPartData(0, 0, 0)
+            )),
+            new PresetData("Salute", Map.of(
+                    BodyPart.HEAD, new PresetBodyPartData(3.0737185, 6.626904, 0),
+                    BodyPart.BODY, new PresetBodyPartData(5, -2.25304, 0),
+                    BodyPart.LEFT_ARM, new PresetBodyPartData(29, 0, 25),
+                    BodyPart.RIGHT_ARM, new PresetBodyPartData(-124, -51, -35),
+                    BodyPart.LEFT_LEG, new PresetBodyPartData(0, 4, 2),
+                    BodyPart.RIGHT_LEG, new PresetBodyPartData(0, -4, -2)
+            )),
+            new PresetData("Blocking", Map.of(
+                    BodyPart.HEAD, new PresetBodyPartData(1.2775335, -7.32031, 0),
+                    BodyPart.BODY, new PresetBodyPartData(0, -4.3447514, 0),
+                    BodyPart.LEFT_ARM, new PresetBodyPartData(-50, 50, 0),
+                    BodyPart.RIGHT_ARM, new PresetBodyPartData(-20, -20, 0),
+                    BodyPart.LEFT_LEG, new PresetBodyPartData(20, 0, 0),
+                    BodyPart.RIGHT_LEG, new PresetBodyPartData(-20, 0, 0)
+            )),
+            new PresetData("Sitting", Map.of(
+                    BodyPart.HEAD, new PresetBodyPartData(3.2998314, -6.680886, 0),
+                    BodyPart.BODY, new PresetBodyPartData(0, 3.2538185, 0),
+                    BodyPart.LEFT_ARM, new PresetBodyPartData(-80, -20, 0),
+                    BodyPart.RIGHT_ARM, new PresetBodyPartData(-80, 20, 0),
+                    BodyPart.LEFT_LEG, new PresetBodyPartData(-90, -10, 0),
+                    BodyPart.RIGHT_LEG, new PresetBodyPartData(-90, 10, 0)
+            )),
+            new PresetData("Laying", Map.of(
+                    BodyPart.HEAD, new PresetBodyPartData(-83.36189, 3.5046368, 0),
+                    BodyPart.BODY, new PresetBodyPartData(-90, -3.1862168, 0),
+                    BodyPart.LEFT_ARM, new PresetBodyPartData(-90, -10, 0),
+                    BodyPart.RIGHT_ARM, new PresetBodyPartData(-90, 10, 0),
+                    BodyPart.LEFT_LEG, new PresetBodyPartData(0, 0, 0),
+                    BodyPart.RIGHT_LEG, new PresetBodyPartData(0, 0, 0)
+            )),
+            new PresetData("Confused", Map.of(
+                    BodyPart.HEAD, new PresetBodyPartData(1.1013848, 38.299202, 0),
+                    BodyPart.BODY, new PresetBodyPartData(0, 12.96918, 0),
+                    BodyPart.LEFT_ARM, new PresetBodyPartData(145, 22, -49),
+                    BodyPart.RIGHT_ARM, new PresetBodyPartData(-22, 31, 10),
+                    BodyPart.LEFT_LEG, new PresetBodyPartData(-6, 0, 0),
+                    BodyPart.RIGHT_LEG, new PresetBodyPartData(6, -20, 0)
+            )),
+            new PresetData("Facepalm", Map.of(
+                    BodyPart.HEAD, new PresetBodyPartData(47.090084, 3.8555756, 0),
+                    BodyPart.BODY, new PresetBodyPartData(10, -1.2397861, 0),
+                    BodyPart.LEFT_ARM, new PresetBodyPartData(-72, 24, 47),
+                    BodyPart.RIGHT_ARM, new PresetBodyPartData(18, -14, 0),
+                    BodyPart.LEFT_LEG, new PresetBodyPartData(-4, -6, -2),
+                    BodyPart.RIGHT_LEG, new PresetBodyPartData(25, -2, 0)
+            )),
+            new PresetData("Formal", Map.of(
+                    BodyPart.HEAD, new PresetBodyPartData(7.1271815, 3.9160357, 0),
+                    BodyPart.BODY, new PresetBodyPartData(4, 3.4252434, 0),
+                    BodyPart.LEFT_ARM, new PresetBodyPartData(30, -20, 21),
+                    BodyPart.RIGHT_ARM, new PresetBodyPartData(30, 22, -20),
+                    BodyPart.LEFT_LEG, new PresetBodyPartData(0, 0, -5),
+                    BodyPart.RIGHT_LEG, new PresetBodyPartData(0, 0, 5)
+            )),
+            new PresetData("Sad", Map.of(
+                    BodyPart.HEAD, new PresetBodyPartData(67.50782, 2.741272, 0),
+                    BodyPart.BODY, new PresetBodyPartData(10, 3.969596, 0),
+                    BodyPart.LEFT_ARM, new PresetBodyPartData(-5, 0, -5),
+                    BodyPart.RIGHT_ARM, new PresetBodyPartData(-5, 0, 5),
+                    BodyPart.LEFT_LEG, new PresetBodyPartData(-5, 16, -5),
+                    BodyPart.RIGHT_LEG, new PresetBodyPartData(-5, -10, 5)
+            ))
+    );
 
     public static class PermissionsData {
 
@@ -171,6 +280,76 @@ public class Config {
         public static class VehicleFeatureData extends FeatureData {
 
             public boolean players = false;
+        }
+    }
+
+    public static class PresetData {
+
+        public String name = "Preset";
+        private Map<String, PresetBodyPartData> bodyParts = new HashMap<>();
+        public transient Map<BodyPart, EulerAngle> pose = Collections.emptyMap();
+
+        public PresetData() {
+            for (BodyPart bodyPart : BodyPart.values()) {
+                String key = bodyPart.toString().toLowerCase();
+                if (!bodyParts.containsKey(key))
+                    bodyParts.put(key, new PresetBodyPartData());
+            }
+        }
+
+        public PresetData(String name, Map<BodyPart, PresetBodyPartData> bodyParts) {
+            this.name = name;
+            for (BodyPart bodyPart : BodyPart.values())
+                this.bodyParts.put(bodyPart.toString().toLowerCase(), bodyParts.getOrDefault(bodyPart, new PresetBodyPartData()));
+            updatePose();
+        }
+
+        public Map<String, PresetBodyPartData> getBodyParts() {
+            return bodyParts;
+        }
+
+        public void setBodyParts(Map<String, PresetBodyPartData> bodyParts) {
+            this.bodyParts = new HashMap<>();
+            for (BodyPart bodyPart : BodyPart.values())
+                this.bodyParts.put(bodyPart.toString().toLowerCase(), bodyParts.getOrDefault(bodyPart.toString().toLowerCase(), new PresetBodyPartData()));
+            updatePose();
+        }
+
+        private void updatePose() {
+            Map<BodyPart, EulerAngle> pose = new HashMap<>();
+            bodyParts.forEach((key, data) -> {
+                try {
+                    pose.put(BodyPart.valueOf(key.toUpperCase()), new EulerAngle(
+                            Math.toRadians(data.x),
+                            Math.toRadians(data.y),
+                            Math.toRadians(data.z)
+                    ));
+                } catch (IllegalArgumentException ignore) {
+                }
+            });
+
+            for (BodyPart bodyPart : BodyPart.values()) {
+                if (!pose.containsKey(bodyPart))
+                    pose.put(bodyPart, new EulerAngle(0, 0, 0));
+            }
+
+            this.pose = pose;
+        }
+
+        public static class PresetBodyPartData {
+
+            public double x;
+            public double y;
+            public double z;
+
+            public PresetBodyPartData() {
+            }
+
+            public PresetBodyPartData(double x, double y, double z) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+            }
         }
     }
 }

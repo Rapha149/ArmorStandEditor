@@ -4,12 +4,12 @@ import de.rapha149.armorstandeditor.ArmorStandEditor;
 import de.rapha149.armorstandeditor.Config;
 import de.rapha149.armorstandeditor.Config.FeaturesData;
 import de.rapha149.armorstandeditor.Events;
-import de.rapha149.armorstandeditor.Util;
 import de.rapha149.armorstandeditor.Util.ArmorStandStatus;
 import de.rapha149.armorstandeditor.version.BodyPart;
 import de.rapha149.armorstandeditor.version.Axis;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
+import dev.triumphteam.gui.guis.GuiItem;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.entity.ArmorStand;
@@ -23,11 +23,13 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
-import static de.rapha149.armorstandeditor.Util.EQUIPMENT_SLOTS;
-import static de.rapha149.armorstandeditor.Util.saveEquipment;
+import static de.rapha149.armorstandeditor.Util.*;
 
 public class ArmorPage extends Page {
 
@@ -35,7 +37,7 @@ public class ArmorPage extends Page {
     public GuiResult getGui(Player player, ArmorStand armorStand, boolean adminBypass) {
         FeaturesData features = Config.get().features;
         Gui gui = Gui.gui().title(Component.text(getMessage("armorstands.title." + (adminBypass ? "admin_bypass" : "normal")))).rows(6).create();
-        ArmorStandStatus status = new ArmorStandStatus(player, armorStand, gui, 1, false);
+        ArmorStandStatus status = new ArmorStandStatus(player, armorStand, gui);
 
         setPrivateItem(player, gui, armorStand, adminBypass);
 
@@ -51,7 +53,7 @@ public class ArmorPage extends Page {
 
         if (isDeactivated(features.replaceEquipment, player)) {
             for (int i = 0; i < EQUIPMENT_SLOTS.size(); i++)
-                gui.setItem(EQUIPMENT_SLOTS.get(i), ItemBuilder.from(equipmentItems[i]).asGuiItem(event -> Util.playBassSound(player)));
+                gui.setItem(EQUIPMENT_SLOTS.get(i), ItemBuilder.from(equipmentItems[i]).asGuiItem(event -> playBassSound(player)));
 
             gui.disableAllInteractions();
         } else {
@@ -83,7 +85,7 @@ public class ArmorPage extends Page {
                 Events.startMoveBodyPart(player, armorStand, BodyPart.HEAD);
             } else if (event.isRightClick()) {
                 wrapper.resetArmorStandBodyPart(armorStand, BodyPart.HEAD);
-                Util.playArmorStandHitSound(player);
+                playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
         gui.setItem(3, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move.right_arm").asGuiItem(event -> {
@@ -92,7 +94,7 @@ public class ArmorPage extends Page {
                 Events.startMoveBodyPart(player, armorStand, BodyPart.RIGHT_ARM);
             } else if (event.isRightClick()) {
                 wrapper.resetArmorStandBodyPart(armorStand, BodyPart.RIGHT_ARM);
-                Util.playArmorStandHitSound(player);
+                playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
         gui.setItem(3, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move.body").asGuiItem(event -> {
@@ -101,7 +103,7 @@ public class ArmorPage extends Page {
                 Events.startMoveBodyPart(player, armorStand, BodyPart.BODY);
             } else if (event.isRightClick()) {
                 wrapper.resetArmorStandBodyPart(armorStand, BodyPart.BODY);
-                Util.playArmorStandHitSound(player);
+                playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
         gui.setItem(3, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move.left_arm").asGuiItem(event -> {
@@ -110,7 +112,7 @@ public class ArmorPage extends Page {
                 Events.startMoveBodyPart(player, armorStand, BodyPart.LEFT_ARM);
             } else if (event.isRightClick()) {
                 wrapper.resetArmorStandBodyPart(armorStand, BodyPart.LEFT_ARM);
-                Util.playArmorStandHitSound(player);
+                playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
         gui.setItem(4, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move.right_leg").asGuiItem(event -> {
@@ -119,7 +121,7 @@ public class ArmorPage extends Page {
                 Events.startMoveBodyPart(player, armorStand, BodyPart.RIGHT_LEG);
             } else if (event.isRightClick()) {
                 wrapper.resetArmorStandBodyPart(armorStand, BodyPart.RIGHT_LEG);
-                Util.playArmorStandHitSound(player);
+                playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
         gui.setItem(4, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move.left_leg").asGuiItem(event -> {
@@ -128,7 +130,7 @@ public class ArmorPage extends Page {
                 Events.startMoveBodyPart(player, armorStand, BodyPart.LEFT_LEG);
             } else if (event.isRightClick()) {
                 wrapper.resetArmorStandBodyPart(armorStand, BodyPart.LEFT_LEG);
-                Util.playArmorStandHitSound(player);
+                playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
 
@@ -143,16 +145,18 @@ public class ArmorPage extends Page {
                 Events.startSnapInMovePosition(player, armorStand, Axis.X);
             } else {
                 armorStand.teleport(armorStand.getLocation().add(event.isLeftClick() ? 0.05 : -0.05, 0, 0));
-                Util.playStepSound(player);
+                playStepSound(player);
             }
         }), features.movePosition, player));
-        gui.setItem(5, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.LIME_DYE), "armorstands.move_position.y").asGuiItem(event -> {
+        gui.setItem(5, 7, checkDeactivated(applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.LIME_DYE),
+                getMessage("armorstands.move_position.y.name") + (armorStand.hasGravity() ? getMessage("armorstands.move_position.y.gravity_warning") : ""),
+                getMessage("armorstands.move_position.y.lore")).asGuiItem(event -> {
             if (event.getClick() == ClickType.DROP) {
                 gui.close(player);
                 Events.startSnapInMovePosition(player, armorStand, Axis.Y);
             } else {
                 armorStand.teleport(armorStand.getLocation().add(0, event.isLeftClick() ? 0.05 : -0.05, 0));
-                Util.playStepSound(player);
+                playStepSound(player);
             }
         }), features.movePosition, player));
         gui.setItem(5, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.BLUE_DYE), "armorstands.move_position.z").asGuiItem(event -> {
@@ -161,44 +165,73 @@ public class ArmorPage extends Page {
                 Events.startSnapInMovePosition(player, armorStand, Axis.Z);
             } else {
                 armorStand.teleport(armorStand.getLocation().add(0, 0, event.isLeftClick() ? 0.05 : -0.05));
-                Util.playStepSound(player);
+                playStepSound(player);
             }
         }), features.movePosition, player));
 
-        gui.setItem(2, 8, checkDeactivated(applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.ENDER_EYE),
-                getMessage("armorstands.rotate.name"), getMessage("armorstands.rotate.lore").replace("%rotation%",
-                        String.valueOf(Math.round(armorStand.getLocation().getYaw() * 100F) / 100F))).asGuiItem(event -> {
+        gui.setItem(2, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.ENDER_EYE), "armorstands.rotate",
+                Map.of("%rotation%", rotationToString(armorStand.getLocation().getYaw()))).asGuiItem(event -> {
             if (event.getClick() == ClickType.DROP) {
                 gui.close(player);
                 Events.startRotationMovement(player, armorStand);
             } else {
                 if (event.getClick() == ClickType.CONTROL_DROP) {
                     armorStand.setRotation(0, armorStand.getLocation().getPitch());
-                    Util.playExperienceSound(player);
+                    playExperienceSound(player);
                 } else {
                     int amount = event.isShiftClick() ? 10 : 45;
                     if (event.isRightClick())
                         amount *= -1;
-                    armorStand.setRotation(armorStand.getLocation().getYaw() + amount, armorStand.getLocation().getPitch());
-                    Util.playStepSound(player);
+                    armorStand.setRotation(getRotation(armorStand.getLocation().getYaw() + amount), armorStand.getLocation().getPitch());
+                    playStepSound(player);
                 }
 
-                gui.updateItem(2, 8, applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.ENDER_EYE),
-                        getMessage("armorstands.rotate.name"), getMessage("armorstands.rotate.lore").replace("%rotation%",
-                                String.valueOf(Math.round(armorStand.getLocation().getYaw() * 100F) / 100F))).build());
+                gui.updateItem(2, 8, applyNameAndLore(ItemBuilder.from(Material.ENDER_EYE), "armorstands.rotate",
+                        Map.of("%rotation%", rotationToString(armorStand.getLocation().getYaw()))).build());
             }
         }), features.rotate, player));
 
-        gui.setItem(2, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.ENDER_PEARL), "armorstands.advanced_controls.open").asGuiItem(event -> {
-            int newPage;
-            if (event.getClick() == ClickType.DROP)
-                newPage = 3;
-            else
-                newPage = event.isLeftClick() ? 1 : 2;
+        {
+            GuiItem item = applyNameAndLore(ItemBuilder.from(Material.ENDER_PEARL), "armorstands.advanced_controls.open").asGuiItem(event -> {
+                int newPage;
+                if (event.getClick() == ClickType.DROP)
+                    newPage = 3;
+                else
+                    newPage = event.isLeftClick() ? 1 : 2;
 
-            Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> Util.openGUI(player, armorStand, newPage, true));
-            Util.playSound(player, Sound.ITEM_BOOK_PAGE_TURN);
-        }), features.advancedControls, player));
+                int originalPage = newPage;
+                FeaturesData features1 = Config.get().features;
+                while (isDeactivated(switch (newPage) {
+                    case 1 -> features1.movePosition;
+                    case 2 -> features1.rotate;
+                    case 3 -> features1.moveBodyParts;
+                    default -> throw new IllegalStateException("Unexpected value: " + newPage);
+                }, player)) {
+                    newPage++;
+                    if (newPage > 3)
+                        newPage = 1;
+                    if (newPage == originalPage) {
+                        playBassSound(player);
+                        return;
+                    }
+                }
+
+                int finalNewPage = newPage;
+                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, finalNewPage, true));
+                playSound(player, Sound.ITEM_BOOK_PAGE_TURN);
+            });
+
+            AtomicInteger deactivatedStatus = new AtomicInteger(2);
+            List.of(features.movePosition, features.rotate, features.moveBodyParts).forEach(feature -> {
+                int i = getDeactivatedStatus(feature, player);
+                if (i < deactivatedStatus.get())
+                    deactivatedStatus.set(i);
+            });
+            if (deactivatedStatus.get() != 0)
+                gui.setItem(2, 6, replaceWithDeactivatedItem(item, player, deactivatedStatus.get(), false));
+            else
+                gui.setItem(2, 6, checkDeactivated(item, features.advancedControls, player));
+        }
 
         gui.getFiller().fill(ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE).name(Component.text("§r")).asGuiItem());
         return new GuiResult(gui, status, () -> saveEquipment(status));
@@ -208,7 +241,7 @@ public class ArmorPage extends Page {
         PersistentDataContainer pdc = armorStand.getPersistentDataContainer();
         UUID uuid;
         try {
-            uuid = pdc.has(Util.PRIVATE_KEY, PersistentDataType.STRING) ? UUID.fromString(pdc.get(Util.PRIVATE_KEY, PersistentDataType.STRING)) : null;
+            uuid = pdc.has(PRIVATE_KEY, PersistentDataType.STRING) ? UUID.fromString(pdc.get(PRIVATE_KEY, PersistentDataType.STRING)) : null;
         } catch (IllegalArgumentException e) {
             uuid = null;
         }
@@ -229,13 +262,26 @@ public class ArmorPage extends Page {
         gui.updateItem(1, 1, checkDeactivated(applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.SHULKER_SHELL), getMessage("armorstands.private.name"),
                 getMessage("armorstands.private.lore." + (adminBypass ? "admin_bypass" : "normal")).replace("%player%", locked ?
                         getMessage("armorstands.private.player").replace("%player%", name) : ""), locked).glow(locked).asGuiItem(event -> {
-            Util.playSpyglassSound(player);
+            playSpyglassSound(player);
             if (locked)
-                pdc.remove(Util.PRIVATE_KEY);
+                pdc.remove(PRIVATE_KEY);
             else
-                pdc.set(Util.PRIVATE_KEY, PersistentDataType.STRING, player.getUniqueId().toString());
+                pdc.set(PRIVATE_KEY, PersistentDataType.STRING, player.getUniqueId().toString());
 
             setPrivateItem(player, gui, armorStand, adminBypass);
         }), Config.get().features.privateArmorstand, player));
+    }
+
+    private float getRotation(float rotation) {
+        if (rotation > 180)
+            return rotation - 360;
+        if (rotation == -180)
+            return 180;
+        return rotation;
+    }
+
+    private String rotationToString(float rotation) {
+        String str = String.valueOf(getRotation(Math.round(rotation * 100F) / 100F));
+        return str.endsWith(".0") ? str.substring(0, str.length() - 2) : str;
     }
 }

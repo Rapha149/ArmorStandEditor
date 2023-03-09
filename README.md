@@ -184,3 +184,4 @@ This plugin collects anonymous server stats with [bStats](https://bstats.org), a
 
 - Credits go to [laGameTV](https://lagametv.de/) for the idea of the plugin.
 - This plugin is **inspired** by [Armor Stand Tools](https://www.spigotmc.org/resources/armor-stand-tools.2237/), but many things are different and the code is entirely my own.
+- Some of the pose presets are from [Vanilla Tweaks](https://vanillatweaks.net/).

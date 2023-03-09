@@ -1,11 +1,16 @@
 package de.rapha149.armorstandeditor;
 
+import de.rapha149.armorstandeditor.Config.FeaturesData;
+import de.rapha149.armorstandeditor.Config.FeaturesData.FeatureData;
 import de.rapha149.armorstandeditor.Config.PermissionsData;
 import de.rapha149.armorstandeditor.pages.*;
 import de.rapha149.armorstandeditor.pages.Page.GuiResult;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
+import dev.triumphteam.gui.guis.GuiItem;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.*;
 import org.bukkit.entity.ArmorStand;
@@ -18,19 +23,31 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
 
 public class Util {
 
+    private static final LegacyComponentSerializer SERIALIZER = LegacyComponentSerializer.builder().hexColors().character('&').build();
+
     public static final NamespacedKey PRIVATE_KEY = NamespacedKey.fromString("private", ArmorStandEditor.getInstance());
     public static final List<Integer> EQUIPMENT_SLOTS = List.of(11, 20, 29, 38, 19, 21);
 
-    public static final Page armorPage = new ArmorPage();
-    public static final Page settingsPage = new SettingsPage();
-    public static final Page advancedPositionPage = new AdvancedPositionPage();
-    public static final Page advancedRotationPage = new AdvancedRotationPage();
-    public static final Page advancedPosePage = new AdvancedPosePage();
+    public static final Page ARMOR_PAGE = new ArmorPage();
+    public static final Page SETTINGS_PAGE = new SettingsPage();
+    public static final Page ADVANCED_POSITION_PAGE = new AdvancedPositionPage();
+    public static final Page ADVANCED_ROTATION_PAGE = new AdvancedRotationPage();
+    public static final Page ADVANCED_POSE_PAGE = new AdvancedPosePage();
+    public static final Page ADVANCED_POSE_PRESETS_PAGE = new AdvancedPosePresetsPage();
+
+    private static final Map<Material, String> ADVANCED_PAGES = new LinkedHashMap<>() {{
+        put(Material.FEATHER, "position");
+        put(Material.ENDER_EYE, "rotation");
+        put(Material.STICK, "pose");
+    }};
 
     public static Map<Player, ArmorStandStatus> invs = new HashMap<>();
     public static Map<Long, AnvilGUI> anvilInvs = new HashMap<>();
@@ -76,70 +93,20 @@ public class Util {
         }
 
         GuiResult result = (!advancedControls ? switch (page) {
-            case 1 -> armorPage;
-            case 2 -> settingsPage;
+            case 1 -> ARMOR_PAGE;
+            case 2 -> SETTINGS_PAGE;
             default -> throw new IllegalArgumentException("Invalid page: " + page);
         } : switch (page) {
-            case 1 -> advancedPositionPage;
-            case 2 -> advancedRotationPage;
-            case 3 -> advancedPosePage;
+            case 1 -> ADVANCED_POSITION_PAGE;
+            case 2 -> ADVANCED_ROTATION_PAGE;
+            case 3 -> ADVANCED_POSE_PAGE;
             default -> throw new IllegalArgumentException("Invalid advanced page: " + page);
         }).getGui(player, armorStand, adminBypass);
-
-/*            String key = "armorstands.advanced_controls." + switch (page) {
-                case 1 -> "position";
-                case 2 -> "rotation";
-                case 3 -> "pose";
-                default -> throw new IllegalStateException("Unexpected value: " + page);
-            } + ".";
-
-            int deactivatedStatus = getDeactivatedStatus(features.advancedControls, player);
-            if (deactivatedStatus == 0) {
-                deactivatedStatus = getDeactivatedStatus(switch (page) {
-                    case 1 -> features.movePosition;
-                    case 2 -> features.rotate;
-                    case 3 -> features.moveBodyParts;
-                    default -> throw new IllegalStateException("Unexpected value: " + page);
-                }, player);
-            }
-
-            gui = Gui.gui().title(Component.text(getMessage(key + "title"))).rows(deactivatedStatus != 0 ? 5 : 6).disableAllInteractions().create();
-            status = new ArmorStandStatus(player, armorStand, gui, page, advancedControls);
-
-            gui.setItem(1, 1, applyNameAndLore(ItemBuilder.from(Material.ARROW), "armorstands.advanced_controls.leave").asGuiItem(event -> {
-                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, 1, false));
-                playSound(player, Sound.ITEM_BOOK_PAGE_TURN);
-            }));
-
-            if (deactivatedStatus != 0) {
-                gui.setItem(3, 5, applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.BARRIER),
-                        getMessage("armorstands.advanced_controls.deactivated").replace("%menu%", getMessage(key + "name")),
-                        getMessage("armorstands.features." + (deactivatedStatus == 1 ? "deactivated" : "no_permission")), false).asGuiItem());
-            } else {
-                switch (page) {
-
-                }
-            }
-        }*/
 
         Gui gui = result.gui();
         ArmorStandStatus status = result.status();
 
-        int maxPages = advancedControls ? 3 : 2;
-        if (page > 1) {
-            gui.setItem(gui.getRows(), 1, ItemBuilder.from(Material.SPECTRAL_ARROW).name(Component.text(getMessage("armorstands.page.back")
-                    .replace("%current%", String.valueOf(page)).replace("%max%", String.valueOf(maxPages)))).asGuiItem(event -> {
-                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, page - 1, advancedControls));
-                playSound(player, Sound.ITEM_BOOK_PAGE_TURN);
-            }));
-        }
-        if (page < maxPages) {
-            gui.setItem(gui.getRows(), 9, ItemBuilder.from(Material.SPECTRAL_ARROW).name(Component.text(getMessage("armorstands.page.forward")
-                    .replace("%current%", String.valueOf(page)).replace("%max%", String.valueOf(maxPages)))).asGuiItem(event -> {
-                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, page + 1, advancedControls));
-                playSound(player, Sound.ITEM_BOOK_PAGE_TURN);
-            }));
-        }
+        addPageItems(player, armorStand, gui, page, advancedControls);
 
         gui.setCloseGuiAction(event -> {
             result.closeAction().run();
@@ -150,6 +117,190 @@ public class Util {
 
         gui.open(player);
         invs.put(player, status);
+    }
+
+    public static void openGUI(Player player, ArmorStand armorStand, Page page) {
+        PermissionsData permissions = Config.get().permissions;
+        if (permissions.general != null && !player.hasPermission(permissions.general)) {
+            player.closeInventory();
+            player.sendMessage(getMessage("no_permission"));
+            playBassSound(player);
+            return;
+        }
+
+        boolean adminBypass = false;
+        PersistentDataContainer pdc = armorStand.getPersistentDataContainer();
+        if (pdc.has(PRIVATE_KEY, PersistentDataType.STRING) && !pdc.get(PRIVATE_KEY, PersistentDataType.STRING).equals(player.getUniqueId().toString())) {
+            if (permissions.ignorePrivate != null && !player.hasPermission(permissions.ignorePrivate)) {
+                player.sendMessage(getMessage("armorstands.no_permission"));
+                return;
+            }
+            adminBypass = true;
+        }
+
+        if (isArmorStandUsed(player, armorStand)) {
+            player.closeInventory();
+            player.sendMessage(getMessage("armorstands.already_open"));
+            playBassSound(player);
+            return;
+        }
+
+        GuiResult result = page.getGui(player, armorStand, adminBypass);
+        Gui gui = result.gui();
+        ArmorStandStatus status = result.status();
+
+        gui.setCloseGuiAction(event -> {
+            result.closeAction().run();
+
+            if (invs.containsKey(player) && invs.get(player).time == status.time)
+                invs.remove(player);
+        });
+
+        gui.open(player);
+        invs.put(player, status);
+    }
+
+    public static void addPageItems(Player player, ArmorStand armorStand, Gui gui, int page, boolean advancedControls) {
+        if (!advancedControls) {
+            int maxPages = advancedControls ? 3 : 2;
+            if (page > 1) {
+                gui.setItem(gui.getRows(), 1, ItemBuilder.from(Material.SPECTRAL_ARROW).name(Component.text(getMessage("armorstands.page.back")
+                        .replace("%current%", String.valueOf(page)).replace("%max%", String.valueOf(maxPages)))).asGuiItem(event -> {
+                    Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, page - 1, advancedControls));
+                    playSound(player, Sound.ITEM_BOOK_PAGE_TURN);
+                }));
+            }
+            if (page < maxPages) {
+                gui.setItem(gui.getRows(), 9, ItemBuilder.from(Material.SPECTRAL_ARROW).name(Component.text(getMessage("armorstands.page.forward")
+                        .replace("%current%", String.valueOf(page)).replace("%max%", String.valueOf(maxPages)))).asGuiItem(event -> {
+                    Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, page + 1, advancedControls));
+                    playSound(player, Sound.ITEM_BOOK_PAGE_TURN);
+                }));
+            }
+        } else {
+            FeaturesData features = Config.get().features;
+            AtomicInteger index = new AtomicInteger(1);
+            ADVANCED_PAGES.forEach((mat, key) -> {
+                int i = index.getAndIncrement();
+                boolean isCurrent = i == page;
+                gui.setItem(gui.getRows(), i + 3, checkDeactivated(applyNameAndLore(ItemBuilder.from(mat), "armorstands.advanced_controls.page_item",
+                        Map.of("%menu%", getMessage("armorstands.advanced_controls." + key + ".name"))).glow(isCurrent).asGuiItem(event -> {
+                    if (isCurrent) {
+                        playBassSound(player);
+                        return;
+                    }
+
+                    Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, i, advancedControls));
+                    playSound(player, Sound.ITEM_BOOK_PAGE_TURN);
+                }), switch (i) {
+                    case 1 -> features.movePosition;
+                    case 2 -> features.rotate;
+                    case 3 -> features.moveBodyParts;
+                    default -> throw new IllegalStateException("Unexpected value: " + i);
+                }, player, true));
+            });
+        }
+    }
+
+    public static ItemBuilder applyNameAndLore(ItemBuilder builder, String key) {
+        return applyNameAndLore(builder, key + ".name", key + ".lore");
+    }
+
+    public static ItemBuilder applyNameAndLore(ItemBuilder builder, String key, Map<String, String> relacements) {
+        return applyNameAndLore(builder, key + ".name", key + ".lore", relacements);
+    }
+
+    public static ItemBuilder applyNameAndLore(ItemBuilder builder, String key, boolean status) {
+        return applyNameAndLore(builder, key + ".name", key + ".lore", status);
+    }
+
+    public static ItemBuilder applyNameAndLore(ItemBuilder builder, String name, String lore) {
+        return applyNameAndLoreWithoutKeys(builder, getMessage(name), getMessage(lore));
+    }
+
+    public static ItemBuilder applyNameAndLore(ItemBuilder builder, String name, String lore, Map<String, String> replacements) {
+        return applyNameAndLoreWithoutKeys(builder, getMessage(name), getMessage(lore), replacements);
+    }
+
+    public static ItemBuilder applyNameAndLore(ItemBuilder builder, String name, String lore, boolean status) {
+        return applyNameAndLoreWithoutKeys(builder, getMessage(name), getMessage(lore), status);
+    }
+
+    public static ItemBuilder applyNameAndLoreWithoutKeys(ItemBuilder builder, String name, String lore, boolean status) {
+        return applyNameAndLoreWithoutKeys(builder, name, lore, Map.of("%status%", getMessage("armorstands.status." + (status ? "on" : "off"))));
+    }
+
+    public static ItemBuilder applyNameAndLoreWithoutKeys(ItemBuilder builder, String name, String lore) {
+        return applyNameAndLoreWithoutKeys(builder, name, lore, Collections.emptyMap());
+    }
+
+    public static ItemBuilder applyNameAndLoreWithoutKeys(ItemBuilder builder, String name, String lore, Map<String, String> replacements) {
+        AtomicReference<String> nameRef = new AtomicReference<>(name);
+        AtomicReference<String> loreRef = new AtomicReference<>(lore);
+        replacements.forEach((key, value) -> {
+            nameRef.set(nameRef.get().replace(key, value));
+            loreRef.set(loreRef.get().replace(key, value));
+        });
+
+        builder.name(SERIALIZER.deserialize(nameRef.get()).decoration(TextDecoration.ITALIC, false));
+        if (!lore.isEmpty()) {
+            builder.lore(Arrays.stream(loreRef.get().split("\n")).map(line -> SERIALIZER.deserialize(line)
+                    .decoration(TextDecoration.ITALIC, false)).collect(Collectors.toList()));
+        }
+        return builder;
+    }
+
+    public static int getDeactivatedStatus(FeatureData feature, Player player) {
+        if (!feature.enabled)
+            return 1;
+        if (feature.permission != null && !player.hasPermission(feature.permission))
+            return 2;
+        return 0;
+    }
+
+    public static boolean isDeactivated(FeatureData feature, Player player) {
+        return getDeactivatedStatus(feature, player) != 0;
+    }
+
+    public static Material getDeactivatedMaterial(Material original) {
+        String deactivatedItem = Config.get().deactivatedItem;
+        if (deactivatedItem == null)
+            return original;
+        else {
+            Material mat = Material.matchMaterial(deactivatedItem);
+            if (mat == null)
+                mat = Material.GRAY_DYE;
+            return mat;
+        }
+    }
+
+    public static GuiItem checkDeactivated(GuiItem item, FeatureData feature, Player player) {
+        return checkDeactivated(item, feature, player, false);
+    }
+
+    public static GuiItem checkDeactivated(GuiItem item, FeatureData feature, Player player, boolean forceOriginalMaterial) {
+        int status = getDeactivatedStatus(feature, player);
+        if (status == 0)
+            return item;
+
+        return replaceWithDeactivatedItem(item, player, status, forceOriginalMaterial);
+    }
+
+    @SuppressWarnings("deprecation")
+    public static GuiItem replaceWithDeactivatedItem(GuiItem item, Player player, int status, boolean forceOriginalMaterial) {
+        ItemStack itemStack = item.getItemStack();
+        Material mat = forceOriginalMaterial ? itemStack.getType() : getDeactivatedMaterial(itemStack.getType());
+
+        ItemBuilder builder = ItemBuilder.from(mat);
+        if (mat == Material.AIR)
+            return builder.asGuiItem();
+
+        if (itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName())
+            builder.setName(itemStack.getItemMeta().getDisplayName());
+        builder.lore(Arrays.stream(getMessage("armorstands.features." + (status == 2 ? "no_permission" : "deactivated")).split("\n"))
+                .map(line -> (Component) Component.text(line)).collect(Collectors.toList()));
+
+        return builder.setNbt("deactivated", true).asGuiItem(event -> Util.playBassSound(player));
     }
 
     public static void playAnvilSound(Player player) {
@@ -249,17 +400,13 @@ public class Util {
         public Player player;
         public ArmorStand armorStand;
         public Gui gui;
-        public int page;
-        public boolean advancedControls;
         public boolean saveEquipment = false;
 
-        public ArmorStandStatus(Player player, ArmorStand armorStand, Gui gui, int page, boolean advancedControls) {
+        public ArmorStandStatus(Player player, ArmorStand armorStand, Gui gui) {
             this.time = System.currentTimeMillis();
             this.player = player;
             this.armorStand = armorStand;
             this.gui = gui;
-            this.page = page;
-            this.advancedControls = advancedControls;
         }
     }
 }

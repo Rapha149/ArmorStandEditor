@@ -222,7 +222,7 @@ public class Events implements Listener, Runnable {
                 if (System.currentTimeMillis() > time + 1000) {
                     Location eyeLoc = player.getEyeLocation();
                     Vector eyeVec = eyeLoc.toVector();
-                    double currentDot = 0.999;
+                    double currentDot = 0;
                     Location closest = null;
                     for (Location loc : locations) {
                         double dot = loc.toVector().subtract(eyeVec).normalize().dot(eyeLoc.getDirection());
@@ -293,7 +293,7 @@ public class Events implements Listener, Runnable {
             if (System.currentTimeMillis() > time + 1000) {
                 Location eyeLoc = player.getEyeLocation();
                 Vector eyeVec = eyeLoc.toVector();
-                double currentDot = 0.999;
+                double currentDot = 0;
                 Location closest = null;
                 for (Location loc : locations) {
                     double dot = loc.toVector().subtract(eyeVec).normalize().dot(eyeLoc.getDirection());
@@ -352,7 +352,7 @@ public class Events implements Listener, Runnable {
                 case Y -> angle.setY(movement.zeroAngle.getY() + pitchChange);
                 case Z -> angle.setZ(movement.zeroAngle.getZ() + pitchChange);
             };
-            bodyPart.apply(armorStand, angle);
+            bodyPart.set(armorStand, angle);
         }, 1, 1);
 
         moving.put(player, movement);
@@ -381,8 +381,7 @@ public class Events implements Listener, Runnable {
                     message = getMessage("armorstands.move_position.title.snapin")
                                       .replace("%distance%", String.valueOf(snapInMovement.distance))
                                       .replace("%aligned_color%", getMessage("armorstands.move_position.title.snapin_color_aligned_" +
-                                                                             (player.isSneaking() ? "active" : "inactive"))) +
-                              " " + Math.round(movement.armorStand.getLocation().distance(player.getLocation()) * 10D) / 10D;
+                                                                             (player.isSneaking() ? "active" : "inactive")));
                 } else
                     message = getMessage("armorstands.move_position.title.normal");
 
@@ -428,8 +427,7 @@ public class Events implements Listener, Runnable {
                     message = getMessage("armorstands.move_position.title.snapin")
                                       .replace("%distance%", String.valueOf(snapInMovement.distance))
                                       .replace("%aligned_color%", getMessage("armorstands.move_position.title.snapin_color_aligned_" +
-                                                                             (player.isSneaking() ? "active" : "inactive"))) +
-                              " " + Math.round(movement.armorStand.getLocation().distance(player.getLocation()) * 10D) / 10D;
+                                                                             (player.isSneaking() ? "active" : "inactive")));
                 } else
                     message = getMessage("armorstands.move_position.title.normal");
 
@@ -599,7 +597,7 @@ public class Events implements Listener, Runnable {
         if (movement instanceof ArmorStandPositionMovement positionMovement) {
             movement.armorStand.teleport(positionMovement.originalLocation);
         } else if (movement instanceof ArmorStandBodyPartMovement bodyPartMovement) {
-            bodyPartMovement.bodyPart.apply(movement.armorStand, bodyPartMovement.cancelAngle);
+            bodyPartMovement.bodyPart.set(movement.armorStand, bodyPartMovement.cancelAngle);
         } else if (movement instanceof ArmorStandRotationMovement rotationMovement) {
             movement.armorStand.setRotation(rotationMovement.originalYaw, movement.armorStand.getLocation().getPitch());
         }
