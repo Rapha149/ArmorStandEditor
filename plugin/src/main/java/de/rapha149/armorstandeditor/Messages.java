@@ -5,9 +5,10 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Messages {
 
@@ -48,7 +49,7 @@ public class Messages {
                 &7   slots to the right of this item.
                 &7» Changes take effect as soon as
                 &7   the inventory or the page is closed.
-                
+                                
                 &7» Slots:
                 &#ff1e00   1. Helmet
                 &#ff7300   2. Chestplate
@@ -62,24 +63,24 @@ public class Messages {
                 &#ffbf00       &l3
                 &#65ff06       &l4""");
         messageConfig.addDefault("armorstands.equipment.invalid", "%prefix%&cYou tried to equip invalid armor items.");
-        messageConfig.addDefault("armorstands.move.title.color_activated", "&d&l");
-        messageConfig.addDefault("armorstands.move.title.color_deactivated", "&7");
-        messageConfig.addDefault("armorstands.move.title.text", "%color_normal%Normal: %normal% &7| %color_sneak%Sneaking: %sneak% &7| Left click: Finish | Right click: Cancel");
-        messageConfig.addDefault("armorstands.move.head.name", "&dMove head");
-        messageConfig.addDefault("armorstands.move.head.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
-        messageConfig.addDefault("armorstands.move.body.name", "&dMove body");
-        messageConfig.addDefault("armorstands.move.body.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
-        messageConfig.addDefault("armorstands.move.left_arm.name", "&dMove left arm");
-        messageConfig.addDefault("armorstands.move.left_arm.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
-        messageConfig.addDefault("armorstands.move.right_arm.name", "&dMove right arm");
-        messageConfig.addDefault("armorstands.move.right_arm.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
-        messageConfig.addDefault("armorstands.move.left_leg.name", "&dMove left leg");
-        messageConfig.addDefault("armorstands.move.left_leg.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
-        messageConfig.addDefault("armorstands.move.right_leg.name", "&dMove right leg");
-        messageConfig.addDefault("armorstands.move.right_leg.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
-        messageConfig.addDefault("armorstands.move_position.title.normal", "&dLeft click: Set down | Right click: Cancel");
-        messageConfig.addDefault("armorstands.move_position.title.snapin_color_aligned_inactive", "&7");
-        messageConfig.addDefault("armorstands.move_position.title.snapin_color_aligned_active", "&d");
+        messageConfig.addDefault("armorstands.move_body_parts.title.color_activated", "&d&l");
+        messageConfig.addDefault("armorstands.move_body_parts.title.color_deactivated", "&7");
+        messageConfig.addDefault("armorstands.move_body_parts.title.text", "%color_normal%Normal: %normal% &7| %color_sneak%Sneaking: %sneak% &7| Left click: Finish | Right click: Cancel");
+        messageConfig.addDefault("armorstands.move_body_parts.head.name", "&dMove head");
+        messageConfig.addDefault("armorstands.move_body_parts.head.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
+        messageConfig.addDefault("armorstands.move_body_parts.body.name", "&dMove body");
+        messageConfig.addDefault("armorstands.move_body_parts.body.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
+        messageConfig.addDefault("armorstands.move_body_parts.left_arm.name", "&dMove left arm");
+        messageConfig.addDefault("armorstands.move_body_parts.left_arm.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
+        messageConfig.addDefault("armorstands.move_body_parts.right_arm.name", "&dMove right arm");
+        messageConfig.addDefault("armorstands.move_body_parts.right_arm.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
+        messageConfig.addDefault("armorstands.move_body_parts.left_leg.name", "&dMove left leg");
+        messageConfig.addDefault("armorstands.move_body_parts.left_leg.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
+        messageConfig.addDefault("armorstands.move_body_parts.right_leg.name", "&dMove right leg");
+        messageConfig.addDefault("armorstands.move_body_parts.right_leg.lore", "&7» Left click ➜ Move\n&7» Right click ➜ Reset");
+        messageConfig.addDefault("armorstands.move_position.title.color_aligned_inactive", "&7");
+        messageConfig.addDefault("armorstands.move_position.title.color_aligned_active", "&d");
+        messageConfig.addDefault("armorstands.move_position.title.normal", "%aligned_color%Sneaking: Aligned &7| Left click: Set down | Right click: Cancel");
         messageConfig.addDefault("armorstands.move_position.title.snapin", "&dScroll: Distance (%distance%) &7| %aligned_color%Sneaking: Aligned &7| Left click: Finish | Right click: Cancel");
         messageConfig.addDefault("armorstands.move_position.name", "&dMove");
         messageConfig.addDefault("armorstands.move_position.lore", """
@@ -109,13 +110,13 @@ public class Messages {
         messageConfig.addDefault("armorstands.rotate.name", "&dRotate");
         messageConfig.addDefault("armorstands.rotate.lore", """
                 &7» Current rotation ➜ &d%rotation%°
-                
+                                
                 &7» Left click ➜ Rotate &d45° &7clockwise
                 &7» Right click ➜ Rotate &d45° &7counterclockwise
-                
+                                
                 &7» Shift + Left click ➜ Rotate &d10° &7clockwise
                 &7» Shift + Right click ➜ Rotate &d10° &7counterclockwise
-                
+                                
                 &7» Drop ➜ Match the armor stand's rotation to yours
                 &7» Ctrl + Drop ➜ Reset rotation""");
         messageConfig.addDefault("armorstands.advanced_controls.open.name", "&dAdvanced Controls");
@@ -183,7 +184,7 @@ public class Messages {
         messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.change.label.lore", "");
         messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.change.button.name", "&dChange %axis% by %amount%°");
         messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.change.button.lore", "&7» Left click ➜ +%amount%°" +
-                                                                                          "\n&7» Right click ➜ -%amount%°");
+                                                                                                   "\n&7» Right click ➜ -%amount%°");
         messageConfig.addDefault("armorstands.advanced_controls.pose.presets.preset.name", "&dPreset » %preset%");
         messageConfig.addDefault("armorstands.advanced_controls.pose.presets.preset.lore", "");
         messageConfig.addDefault("armorstands.private.name", "&dPrivate");
@@ -236,9 +237,22 @@ public class Messages {
 
     public static void loadMessages() {
         try {
-            if (messageFile.exists())
-                messageConfig.load(messageFile);
-            else
+            if (messageFile.exists()) {
+                BufferedReader br = new BufferedReader(new FileReader(messageFile));
+                String content = br.lines().collect(Collectors.joining("\n"));
+                br.close();
+
+                messageConfig.loadFromString(content);
+
+                String line = content.split("\n")[0];
+                Matcher matcher = Pattern.compile("# ArmorStandEditor version ((\\d|\\.)+)").matcher(line);
+                if (matcher.matches()) {
+                    String version = matcher.group(1);
+                    if (Updates.compare(version, "1.4") <= 0 && Updates.compare(ArmorStandEditor.getInstance().getDescription().getVersion(), "1.4") > 0) {
+                        messageConfig.set("armorstands.move_position.title.normal", messageConfig.getDefaults().get("armorstands.move_position.title.normal"));
+                    }
+                }
+            } else
                 messageFile.getParentFile().mkdirs();
 
             messageConfig.getKeys(true).forEach(key -> {

@@ -79,7 +79,7 @@ public class ArmorPage extends Page {
             });
         }
 
-        gui.setItem(2, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.PLAYER_HEAD), "armorstands.move.head").asGuiItem(event -> {
+        gui.setItem(2, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.PLAYER_HEAD), "armorstands.move_body_parts.head").asGuiItem(event -> {
             if (event.isLeftClick()) {
                 gui.close(player);
                 Events.startMoveBodyPart(player, armorStand, BodyPart.HEAD);
@@ -88,7 +88,7 @@ public class ArmorPage extends Page {
                 playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
-        gui.setItem(3, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move.right_arm").asGuiItem(event -> {
+        gui.setItem(3, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move_body_parts.right_arm").asGuiItem(event -> {
             if (event.isLeftClick()) {
                 gui.close(player);
                 Events.startMoveBodyPart(player, armorStand, BodyPart.RIGHT_ARM);
@@ -97,7 +97,7 @@ public class ArmorPage extends Page {
                 playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
-        gui.setItem(3, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move.body").asGuiItem(event -> {
+        gui.setItem(3, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move_body_parts.body").asGuiItem(event -> {
             if (event.isLeftClick()) {
                 gui.close(player);
                 Events.startMoveBodyPart(player, armorStand, BodyPart.BODY);
@@ -106,7 +106,7 @@ public class ArmorPage extends Page {
                 playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
-        gui.setItem(3, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move.left_arm").asGuiItem(event -> {
+        gui.setItem(3, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move_body_parts.left_arm").asGuiItem(event -> {
             if (event.isLeftClick()) {
                 gui.close(player);
                 Events.startMoveBodyPart(player, armorStand, BodyPart.LEFT_ARM);
@@ -115,7 +115,7 @@ public class ArmorPage extends Page {
                 playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
-        gui.setItem(4, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move.right_leg").asGuiItem(event -> {
+        gui.setItem(4, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move_body_parts.right_leg").asGuiItem(event -> {
             if (event.isLeftClick()) {
                 gui.close(player);
                 Events.startMoveBodyPart(player, armorStand, BodyPart.RIGHT_LEG);
@@ -124,7 +124,7 @@ public class ArmorPage extends Page {
                 playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
-        gui.setItem(4, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move.left_leg").asGuiItem(event -> {
+        gui.setItem(4, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move_body_parts.left_leg").asGuiItem(event -> {
             if (event.isLeftClick()) {
                 gui.close(player);
                 Events.startMoveBodyPart(player, armorStand, BodyPart.LEFT_LEG);

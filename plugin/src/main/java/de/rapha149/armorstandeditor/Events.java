@@ -388,9 +388,9 @@ public class Events implements Listener, Runnable {
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
             } else if (movement instanceof ArmorStandBodyPartMovement bodyPartMovement) {
                 BodyPart bodyPart = bodyPartMovement.bodyPart;
-                String activated = getMessage("armorstands.move.title.color_activated"),
-                        deactivated = getMessage("armorstands.move.title.color_deactivated");
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(getMessage("armorstands.move.title.text")
+                String activated = getMessage("armorstands.move_body_parts.title.color_activated"),
+                        deactivated = getMessage("armorstands.move_body_parts.title.color_deactivated");
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(getMessage("armorstands.move_body_parts.title.text")
                         .replace("%normal%", bodyPart.normalYawDir.getString(bodyPart.normalPitchDir))
                         .replace("%sneak%", bodyPart.sneakYawDir.getString(bodyPart.sneakPitchDir))
                         .replace("%color_normal%", !player.isSneaking() ? activated : deactivated)
@@ -434,9 +434,9 @@ public class Events implements Listener, Runnable {
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
             } else if (movement instanceof ArmorStandBodyPartMovement bodyPartMovement) {
                 BodyPart bodyPart = bodyPartMovement.bodyPart;
-                String activated = getMessage("armorstands.move.title.color_activated"),
-                        deactivated = getMessage("armorstands.move.title.color_deactivated");
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(getMessage("armorstands.move.title.text")
+                String activated = getMessage("armorstands.move_body_parts.title.color_activated"),
+                        deactivated = getMessage("armorstands.move_body_parts.title.color_deactivated");
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(getMessage("armorstands.move_body_parts.title.text")
                         .replace("%normal%", bodyPart.normalYawDir.getString(bodyPart.normalPitchDir))
                         .replace("%sneak%", bodyPart.sneakYawDir.getString(bodyPart.sneakPitchDir))
                         .replace("%color_normal%", !player.isSneaking() ? activated : deactivated)
