@@ -1,8 +1,14 @@
 # ArmorStandEditor
 A Minecraft plugin to edit armor stands simply by interacting with them.
 
-![inventory page 1](https://user-images.githubusercontent.com/49787110/222918545-5b2e58b4-7420-40dc-80d7-9c0c1cc8f54a.png)
-![inventory page 2](https://user-images.githubusercontent.com/49787110/220210919-40dfba04-afd5-4002-89d1-726121ab6058.png)
+![armor](https://user-images.githubusercontent.com/49787110/224565054-4ff3f2d8-c782-4e4e-8101-d863e2f641a2.png)
+![settings](https://user-images.githubusercontent.com/49787110/224565057-3a5cba3a-95ea-4aac-8069-4b45e3c78fa0.png)  
+![advancedcontrols_position](https://user-images.githubusercontent.com/49787110/224565063-b0328b6a-2a52-437e-ac9c-b5932a468c3e.png)
+![advancedcontrols_rotation](https://user-images.githubusercontent.com/49787110/224565068-404c35bd-b133-4e51-974b-25a1efaf58a4.png)  
+![advancedcontrols_pose_overview](https://user-images.githubusercontent.com/49787110/224565077-5c1dabcf-2fb3-40ad-b4d2-675cfe1fa474.png)
+![advancedcontrols_pose_head](https://user-images.githubusercontent.com/49787110/224565076-55dee826-2c77-4f0b-a0d2-1d05c729a639.png)
+![advancedcontrols_pose_presets](https://user-images.githubusercontent.com/49787110/224565080-58339510-45e6-4324-9e35-27e07aaedf99.png)
+
 
 ## Features
 
@@ -91,6 +97,12 @@ features:
     enabled: true
     permission: null
 
+  # Using advanced controls to change position, rotation and pose.
+  # They can be individually enabled/disabled via the options above.
+  advancedControls:
+    enabled: true
+    permission: null
+
   # Making your armor stand private so that only you can open its ASE inventory.
   privateArmorstand:
     enabled: true
@@ -174,6 +186,505 @@ features:
   copy:
     enabled: true
     permission: null
+
+# Here you can define presets which are shown on the Pose page of the Advanced Controls.
+# Maximum of 15 presets.
+presets:
+
+- bodyParts:
+
+    head:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    right_arm:
+      x: -15.0
+      y: 0.0
+      z: 10.0
+
+    left_leg:
+      x: -1.0
+      y: 0.0
+      z: -1.0
+
+    left_arm:
+      x: -10.0
+      y: 0.0
+      z: -10.0
+
+    right_leg:
+      x: 1.0
+      y: 0.0
+      z: 1.0
+
+    body:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+  name: Default
+
+- bodyParts:
+
+    head:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    right_arm:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    left_leg:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    left_arm:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    right_leg:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    body:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+  name: 0°
+
+- bodyParts:
+
+    head:
+      x: 0.8944604
+      y: 9.055486
+      z: 0.0
+
+    right_arm:
+      x: -90.0
+      y: 0.0
+      z: 0.0
+
+    left_leg:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    left_arm:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    right_leg:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    body:
+      x: 0.0
+      y: -2.3101969
+      z: 0.0
+  name: Item
+
+- bodyParts:
+
+    head:
+      x: 2.739634
+      y: -5.375096
+      z: 0.0
+
+    right_arm:
+      x: -15.0
+      y: -45.0
+      z: 0.0
+
+    left_leg:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    left_arm:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    right_leg:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    body:
+      x: 0.0
+      y: -0.29615206
+      z: 0.0
+  name: Block
+
+- bodyParts:
+
+    head:
+      x: 5.883482
+      y: -19.316841
+      z: 0.0
+
+    right_arm:
+      x: 20.0
+      y: 0.0
+      z: 10.0
+
+    left_leg:
+      x: 20.0
+      y: 0.0
+      z: 0.0
+
+    left_arm:
+      x: -20.0
+      y: 0.0
+      z: -10.0
+
+    right_leg:
+      x: -20.0
+      y: 0.0
+      z: 0.0
+
+    body:
+      x: 0.0
+      y: -1.3423482
+      z: 0.0
+  name: Walking
+
+- bodyParts:
+
+    head:
+      x: 5.747715
+      y: 1.8663449
+      z: 0.0
+
+    right_arm:
+      x: -40.0
+      y: 0.0
+      z: 10.0
+
+    left_leg:
+      x: -40.0
+      y: 0.0
+      z: 0.0
+
+    left_arm:
+      x: 40.0
+      y: 0.0
+      z: -10.0
+
+    right_leg:
+      x: 40.0
+      y: 0.0
+      z: 0.0
+
+    body:
+      x: 0.0
+      y: 1.5624547
+      z: 0.0
+  name: Running
+
+- bodyParts:
+
+    head:
+      x: 1.7437577
+      y: 19.371622
+      z: 0.0
+
+    right_arm:
+      x: -90.0
+      y: 18.0
+      z: 0.0
+
+    left_leg:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    left_arm:
+      x: 0.0
+      y: 0.0
+      z: -10.0
+
+    right_leg:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    body:
+      x: 0.0
+      y: 2.9660754
+      z: 0.0
+  name: Pointing
+
+- bodyParts:
+
+    head:
+      x: 3.0737185
+      y: 6.626904
+      z: 0.0
+
+    right_arm:
+      x: -124.0
+      y: -51.0
+      z: -35.0
+
+    left_leg:
+      x: 0.0
+      y: 4.0
+      z: 2.0
+
+    left_arm:
+      x: 29.0
+      y: 0.0
+      z: 25.0
+
+    right_leg:
+      x: 0.0
+      y: -4.0
+      z: -2.0
+
+    body:
+      x: 5.0
+      y: -2.25304
+      z: 0.0
+  name: Salute
+
+- bodyParts:
+
+    head:
+      x: 1.2775335
+      y: -7.32031
+      z: 0.0
+
+    right_arm:
+      x: -20.0
+      y: -20.0
+      z: 0.0
+
+    left_leg:
+      x: 20.0
+      y: 0.0
+      z: 0.0
+
+    left_arm:
+      x: -50.0
+      y: 50.0
+      z: 0.0
+
+    right_leg:
+      x: -20.0
+      y: 0.0
+      z: 0.0
+
+    body:
+      x: 0.0
+      y: -4.3447514
+      z: 0.0
+  name: Blocking
+
+- bodyParts:
+
+    head:
+      x: 3.2998314
+      y: -6.680886
+      z: 0.0
+
+    right_arm:
+      x: -80.0
+      y: 20.0
+      z: 0.0
+
+    left_leg:
+      x: -90.0
+      y: -10.0
+      z: 0.0
+
+    left_arm:
+      x: -80.0
+      y: -20.0
+      z: 0.0
+
+    right_leg:
+      x: -90.0
+      y: 10.0
+      z: 0.0
+
+    body:
+      x: 0.0
+      y: 3.2538185
+      z: 0.0
+  name: Sitting
+
+- bodyParts:
+
+    head:
+      x: -83.36189
+      y: 3.5046368
+      z: 0.0
+
+    right_arm:
+      x: -90.0
+      y: 10.0
+      z: 0.0
+
+    left_leg:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    left_arm:
+      x: -90.0
+      y: -10.0
+      z: 0.0
+
+    right_leg:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+
+    body:
+      x: -90.0
+      y: -3.1862168
+      z: 0.0
+  name: Laying
+
+- bodyParts:
+
+    head:
+      x: 1.1013848
+      y: 38.299202
+      z: 0.0
+
+    right_arm:
+      x: -22.0
+      y: 31.0
+      z: 10.0
+
+    left_leg:
+      x: -6.0
+      y: 0.0
+      z: 0.0
+
+    left_arm:
+      x: 145.0
+      y: 22.0
+      z: -49.0
+
+    right_leg:
+      x: 6.0
+      y: -20.0
+      z: 0.0
+
+    body:
+      x: 0.0
+      y: 12.96918
+      z: 0.0
+  name: Confused
+
+- bodyParts:
+
+    head:
+      x: 47.090084
+      y: 3.8555756
+      z: 0.0
+
+    right_arm:
+      x: 18.0
+      y: -14.0
+      z: 0.0
+
+    left_leg:
+      x: -4.0
+      y: -6.0
+      z: -2.0
+
+    left_arm:
+      x: -72.0
+      y: 24.0
+      z: 47.0
+
+    right_leg:
+      x: 25.0
+      y: -2.0
+      z: 0.0
+
+    body:
+      x: 10.0
+      y: -1.2397861
+      z: 0.0
+  name: Facepalm
+
+- bodyParts:
+
+    head:
+      x: 7.1271815
+      y: 3.9160357
+      z: 0.0
+
+    right_arm:
+      x: 30.0
+      y: 22.0
+      z: -20.0
+
+    left_leg:
+      x: 0.0
+      y: 0.0
+      z: -5.0
+
+    left_arm:
+      x: 30.0
+      y: -20.0
+      z: 21.0
+
+    right_leg:
+      x: 0.0
+      y: 0.0
+      z: 5.0
+
+    body:
+      x: 4.0
+      y: 3.4252434
+      z: 0.0
+  name: Formal
+
+- bodyParts:
+
+    head:
+      x: 67.50782
+      y: 2.741272
+      z: 0.0
+
+    right_arm:
+      x: -5.0
+      y: 0.0
+      z: 5.0
+
+    left_leg:
+      x: -5.0
+      y: 16.0
+      z: -5.0
+
+    left_arm:
+      x: -5.0
+      y: 0.0
+      z: -5.0
+
+    right_leg:
+      x: -5.0
+      y: -10.0
+      z: 5.0
+
+    body:
+      x: 10.0
+      y: 3.969596
+      z: 0.0
+  name: Sad
 ```
 
 ## Additional information
