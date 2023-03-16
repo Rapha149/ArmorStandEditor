@@ -165,15 +165,18 @@ public class Messages {
         messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart_names.right_leg", "Right Leg");
         messageConfig.addDefault("armorstands.advanced_controls.pose.back.name", "&dBack to Overview");
         messageConfig.addDefault("armorstands.advanced_controls.pose.back.lore", "");
-        messageConfig.addDefault("armorstands.advanced_controls.pose.overview.choose_bodypart.name", "&dCurrent values » %bodypart%°");
-        messageConfig.addDefault("armorstands.advanced_controls.pose.overview.choose_bodypart.lore", "");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.overview.choose_bodypart.name", "&dModify %bodypart%°");
+        messageConfig.addDefault("armorstands.advanced_controls.pose.overview.choose_bodypart.lore", """
+                &7» Current X ➜ %pose_x%°
+                &7» Current Y ➜ %pose_y%°
+                &7» Current Z ➜ %pose_z%°""");
         messageConfig.addDefault("armorstands.advanced_controls.pose.overview.presets.name", "&dPresets");
         messageConfig.addDefault("armorstands.advanced_controls.pose.overview.presets.lore", "");
         messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.current.name", "&dModify » %bodypart%");
         messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.current.lore", """
-                &7» Current X ➜ %pose_x%
-                &7» Current Y ➜ %pose_y%
-                &7» Current Z ➜ %pose_z%""");
+                &7» Current X ➜ %pose_x%°
+                &7» Current Y ➜ %pose_y%°
+                &7» Current Z ➜ %pose_z%°""");
         messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.reset.label.name", "&dReset »");
         messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.reset.label.lore", "");
         messageConfig.addDefault("armorstands.advanced_controls.pose.bodypart.reset.button.default.name", "&dReset %axis%");

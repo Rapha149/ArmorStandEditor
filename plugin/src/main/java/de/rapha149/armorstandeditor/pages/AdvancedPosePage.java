@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
+import org.bukkit.util.EulerAngle;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -45,8 +46,13 @@ public class AdvancedPosePage extends Page {
         BODYPARTS.forEach((slot, entry) -> {
             BodyPart bodyPart = entry.getKey();
             Material mat = entry.getValue();
-            gui.setItem(slot, applyNameAndLore(ItemBuilder.from(mat), KEY + "overview.choose_bodypart",
-                    Map.of("%bodypart%", getMessage(KEY + "bodypart_names." + bodyPart.toString().toLowerCase()))).asGuiItem(event -> {
+            EulerAngle angle = bodyPart.get(armorStand);
+            gui.setItem(slot, applyNameAndLore(ItemBuilder.from(mat), KEY + "overview.choose_bodypart", Map.of(
+                    "%bodypart%", getMessage(KEY + "bodypart_names." + bodyPart.toString().toLowerCase()),
+                    "%pose_x%", angleToString(angle.getX()),
+                    "%pose_y%", angleToString(angle.getY()),
+                    "%pose_z%", angleToString(angle.getZ())
+                )).asGuiItem(event -> {
                 Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, new AdvancedPoseBodyPartPage(bodyPart)));
                 playSound(player, Sound.ITEM_BOOK_PAGE_TURN);
             }));
@@ -59,5 +65,18 @@ public class AdvancedPosePage extends Page {
 
         gui.getFiller().fill(ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE).name(Component.text("§r")).asGuiItem());
         return new GuiResult(gui, status);
+    }
+
+    private double getRotation(double rotation) {
+        if (rotation > 180)
+            return rotation - 360;
+        if (rotation == -180)
+            return 180;
+        return rotation;
+    }
+
+    private String angleToString(double angle) {
+        String str = String.valueOf(getRotation(Math.round(Math.toDegrees(angle) * 100D) / 100D));
+        return str.endsWith(".0") ? str.substring(0, str.length() - 2) : str;
     }
 }
