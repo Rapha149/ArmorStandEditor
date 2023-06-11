@@ -5,6 +5,7 @@ import de.rapha149.armorstandeditor.version.BodyPart;
 import org.bukkit.util.EulerAngle;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 import org.yaml.snakeyaml.representer.Representer;
@@ -67,7 +68,7 @@ public class Config {
         options.setSplitLines(false);
         Representer representer = new Representer(options);
         representer.setPropertyUtils(new CustomPropertyUtils());
-        Yaml yaml = new Yaml(new CustomClassLoaderConstructor(ArmorStandEditor.getInstance().getClass().getClassLoader()), representer, options);
+        Yaml yaml = new Yaml(new CustomClassLoaderConstructor(ArmorStandEditor.getInstance().getClass().getClassLoader(), new LoaderOptions()), representer, options);
 
         File file = new File(ArmorStandEditor.getInstance().getDataFolder(), "config.yml");
         if (file.exists()) {

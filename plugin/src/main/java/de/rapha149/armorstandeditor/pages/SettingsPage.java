@@ -11,6 +11,7 @@ import dev.triumphteam.gui.guis.Gui;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.wesjd.anvilgui.AnvilGUI;
 import net.wesjd.anvilgui.AnvilGUI.Builder;
 import net.wesjd.anvilgui.AnvilGUI.ResponseAction;
 import org.bukkit.Bukkit;
@@ -24,10 +25,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
@@ -119,7 +117,7 @@ public class SettingsPage extends Page {
                     } else if (event.isRightClick()) {
                         if (armorStand.eject()) {
                             playExperienceSound(player);
-                            gui.updateItem(4, 8, applyNameAndLore(ItemBuilder.from(Material.SADDLE), "armorstands.vehicle").glow(false).build());
+                            gui.updateItem(4, 8, applyNameAndLore(ItemBuilder.from(Material.LEAD), "armorstands.vehicle").glow(false).build());
                         } else
                             playBassSound(player);
                     }
@@ -139,7 +137,7 @@ public class SettingsPage extends Page {
                     } else if (event.isRightClick()) {
                         if (armorStand.leaveVehicle()) {
                             playExperienceSound(player);
-                            gui.updateItem(5, 8, applyNameAndLore(ItemBuilder.from(Material.MINECART), "armorstands.passenger").glow(false).build());
+                            gui.updateItem(5, 8, applyNameAndLore(ItemBuilder.from(Material.SADDLE), "armorstands.passenger").glow(false).build());
                         } else
                             playBassSound(player);
                     }
@@ -323,12 +321,16 @@ public class SettingsPage extends Page {
                                 anvilInvs.remove(time);
                                 Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, PAGE_NUMBER, false));
                             }
-                        }).onComplete(completion -> {
-                            wrapper.setCustomName(armorStand, completion.getText());
+                        }).onClick((slot, state) -> {
+                            if (slot != AnvilGUI.Slot.OUTPUT)
+                                return Collections.emptyList();
+
+                            wrapper.setCustomName(armorStand, state.getText());
                             armorStand.setCustomNameVisible(true);
                             anvilInvs.remove(time);
                             Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, PAGE_NUMBER, false));
-                            return Arrays.asList(ResponseAction.run(() -> {}));
+                            return Arrays.asList(ResponseAction.run(() -> {
+                            }));
                         }).open(player)));
             } else if (event.isRightClick()) {
                 wrapper.setCustomName(armorStand, null);
