@@ -7,7 +7,7 @@
     <parent>
         <artifactId>ArmorStandEditor-parent</artifactId>
         <groupId>de.rapha149.armorstandeditor</groupId>
-        <version>1.5.4</version>
+        <version>1.5.5</version>
     </parent>
 
     <artifactId>ArmorStandEditor</artifactId>
@@ -38,12 +38,12 @@
         <dependency>
             <groupId>dev.triumphteam</groupId>
             <artifactId>triumph-gui</artifactId>
-            <version>3.1.4</version>
+            <version>3.1.9</version>
         </dependency>
         <dependency>
             <groupId>net.wesjd</groupId>
             <artifactId>anvilgui</artifactId>
-            <version>1.9.2-SNAPSHOT</version>
+            <version>1.9.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
@@ -107,6 +107,12 @@
         <dependency>
             <groupId>de.rapha149.armorstandeditor</groupId>
             <artifactId>ArmorStandEditor-1_20_R3</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.rapha149.armorstandeditor</groupId>
+            <artifactId>ArmorStandEditor-1_20_R4</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>

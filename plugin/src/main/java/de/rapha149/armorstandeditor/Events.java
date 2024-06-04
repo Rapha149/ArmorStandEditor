@@ -36,6 +36,9 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
@@ -740,7 +743,7 @@ public class Events implements Listener {
         return ItemNbt.setString(checkDeactivated(item, feature, player), "empty_slot", "");
     }*/
 
-    static class ArmorStandMovement {
+    public static class ArmorStandMovement {
 
         ArmorStand armorStand;
         BukkitTask task;
@@ -859,7 +862,7 @@ public class Events implements Listener {
             if (item.getType() != Material.ARMOR_STAND)
                 return;
 
-            if (wrapper.isArmorstandItem(item)) {
+            if (Util.isArmorstandItem(item)) {
                 if (original != null)
                     return;
                 original = item;
@@ -872,8 +875,11 @@ public class Events implements Listener {
             return;
 
         if (original != null && count > 0) {
-            ItemStack result = wrapper.prepareRecipeResult(original, originalSlot);
+            ItemStack result = wrapper.prepareRecipeResult(original);
             result.setAmount(count);
+            ItemMeta meta = result.getItemMeta();
+            meta.getPersistentDataContainer().set(Util.ORIGINAL_SLOT_KEY, PersistentDataType.INTEGER, originalSlot);
+            result.setItemMeta(meta);
             inventory.setResult(result);
         }
     }
@@ -885,15 +891,23 @@ public class Events implements Listener {
         if (!(event.getInventory() instanceof CraftingInventory inventory))
             return;
 
-        Entry<ItemStack, Integer> entry = wrapper.getRecipeResultAndOriginalSlot(event.getCurrentItem());
-        if (entry == null)
+        ItemStack item = event.getCurrentItem().clone();
+        if (item.getType() != Material.ARMOR_STAND || !Util.isArmorstandItem(item) || !item.hasItemMeta())
             return;
 
-        inventory.setResult(entry.getKey());
+        ItemMeta meta = item.getItemMeta();
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        if(!pdc.has(Util.ORIGINAL_SLOT_KEY, PersistentDataType.INTEGER))
+            return;
+
+        int originalSlot = pdc.get(Util.ORIGINAL_SLOT_KEY, PersistentDataType.INTEGER);
+        pdc.remove(Util.ORIGINAL_SLOT_KEY);
+        item.setItemMeta(meta);
+        inventory.setResult(item);
 
         ItemStack[] matrix = inventory.getMatrix().clone();
         for (int i = 0; i < matrix.length; i++) {
-            if (i != entry.getValue())
+            if (i != originalSlot)
                 matrix[i] = null;
             else if (matrix[i] != null)
                 matrix[i] = matrix[i].clone();

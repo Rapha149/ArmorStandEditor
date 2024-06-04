@@ -5,6 +5,7 @@ import de.rapha149.armorstandeditor.Config;
 import de.rapha149.armorstandeditor.Config.FeaturesData;
 import de.rapha149.armorstandeditor.Config.FeaturesData.FeatureData;
 import de.rapha149.armorstandeditor.Events;
+import de.rapha149.armorstandeditor.Util;
 import de.rapha149.armorstandeditor.Util.ArmorStandStatus;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
@@ -95,6 +96,7 @@ public class SettingsPage extends Page {
 
             gui.close(player);
             ItemStack item = wrapper.getArmorstandItem(armorStand, PRIVATE_KEY);
+            Util.makeArmorstandItem(item);
             if (player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR)
                 armorStand.remove();
             inv.addItem(item);

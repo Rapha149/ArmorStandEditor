@@ -153,7 +153,6 @@ public class Wrapper1_20_R3 implements VersionWrapper {
         net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(new ItemStack(Material.ARMOR_STAND));
         NBTTagCompound itemNBT = nmsItem.w();
         itemNBT.a("EntityTag", nbt);
-        itemNBT.a(ITEM_IDENTIFIER, true);
         ItemStack item = CraftItemStack.asBukkitCopy(nmsItem);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(armorStand.getCustomName());
@@ -165,16 +164,8 @@ public class Wrapper1_20_R3 implements VersionWrapper {
     }
 
     @Override
-    public boolean isArmorstandItem(ItemStack item) {
-        if (item == null)
-            return false;
-        NBTTagCompound nbt = CraftItemStack.asNMSCopy(item).v();
-        return nbt != null && nbt.e(ITEM_IDENTIFIER) && nbt.q(ITEM_IDENTIFIER);
-    }
-
-    @Override
-    public ItemStack prepareRecipeResult(ItemStack item, int originalSlot) {
-        if (item.getType() != Material.ARMOR_STAND || !isArmorstandItem(item))
+    public ItemStack prepareRecipeResult(ItemStack item) {
+        if (item.getType() != Material.ARMOR_STAND)
             return null;
 
         net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
@@ -186,22 +177,6 @@ public class Wrapper1_20_R3 implements VersionWrapper {
             entityNBT.r("HandItems");
         }
 
-        nbt.a(ORIGINAL_SLOT_IDENTIFIER, originalSlot);
         return CraftItemStack.asBukkitCopy(nmsItem);
-    }
-
-    @Override
-    public Entry<ItemStack, Integer> getRecipeResultAndOriginalSlot(ItemStack item) {
-        if (item.getType() != Material.ARMOR_STAND || !isArmorstandItem(item))
-            return null;
-
-        net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-        NBTTagCompound nbt = nmsItem.v();
-        if (!nbt.e(ORIGINAL_SLOT_IDENTIFIER))
-            return null;
-
-        int originalSlot = nbt.h(ORIGINAL_SLOT_IDENTIFIER);
-        nbt.r(ORIGINAL_SLOT_IDENTIFIER);
-        return Map.entry(CraftItemStack.asBukkitCopy(nmsItem), originalSlot);
     }
 }

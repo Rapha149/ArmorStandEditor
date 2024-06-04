@@ -7,12 +7,8 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Map.Entry;
-
 public interface VersionWrapper {
 
-    String ITEM_IDENTIFIER = "ArmorStandEditor";
-    String ORIGINAL_SLOT_IDENTIFIER = "OriginalSlot";
     String INVISIBLE_TAG = "ArmorStandEditor-Invisible";
 
     GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
@@ -31,9 +27,5 @@ public interface VersionWrapper {
 
     ItemStack getArmorstandItem(ArmorStand armorStand, NamespacedKey privateKey);
 
-    boolean isArmorstandItem(ItemStack item);
-
-    ItemStack prepareRecipeResult(ItemStack item, int originalSlot);
-
-    Entry<ItemStack, Integer> getRecipeResultAndOriginalSlot(ItemStack item);
+    ItemStack prepareRecipeResult(ItemStack item);
 }

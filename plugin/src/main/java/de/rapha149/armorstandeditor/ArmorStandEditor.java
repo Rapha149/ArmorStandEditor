@@ -26,13 +26,14 @@ public final class ArmorStandEditor extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        String nmsVersion = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3].substring(1);
+        String nmsVersion = getNMSVersion();
         try {
             wrapper = (VersionWrapper) Class.forName(VersionWrapper.class.getPackage().getName() + ".Wrapper" + nmsVersion).getDeclaredConstructor().newInstance();
-        } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
-            throw new IllegalStateException("Failed to load support for server version \"" + nmsVersion + "\"");
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("ArmorStandEditor does not support the server version \"" + nmsVersion + "\"");
+        } catch (IllegalAccessException | InstantiationException | NoSuchMethodException |
+                 InvocationTargetException exception) {
+            throw new IllegalStateException("Failed to load support for server version " + nmsVersion, exception);
+        } catch (ClassNotFoundException exception) {
+            throw new IllegalStateException("ArmorStandEditor does not support the server version \"" + nmsVersion + "\"", exception);
         }
 
         Messages.loadMessages();
@@ -71,6 +72,26 @@ public final class ArmorStandEditor extends JavaPlugin {
 
     public static ArmorStandEditor getInstance() {
         return instance;
+    }
+
+    private String getNMSVersion() {
+        String craftBukkitPackage = Bukkit.getServer().getClass().getPackage().getName();
+
+        String version;
+        if (!craftBukkitPackage.contains(".v")) { // cb package not relocated (i.e. paper 1.20.5+)
+            // separating major and minor versions, example: 1.20.4-R0.1-SNAPSHOT -> major = 20, minor = 4
+            final String[] versionNumbers = Bukkit.getBukkitVersion().split("-")[0].split("\\.");
+            int major = Integer.parseInt(versionNumbers[1]);
+            int minor = Integer.parseInt(versionNumbers[2]);
+
+            if (major == 20 && (minor == 5 || minor == 6))
+                version = "1_20_R4";
+            else
+                throw new IllegalStateException("ArmorStandEditor does not support bukkit server version \"" + Bukkit.getBukkitVersion() + "\"");
+        } else {
+            version = craftBukkitPackage.split("\\.")[3].substring(1);
+        }
+        return version;
     }
 
     private void loadMetrics() {
@@ -179,9 +200,9 @@ public final class ArmorStandEditor extends JavaPlugin {
     }
 
     private String getFeatureStatus(FeatureData feature) {
-        if(!feature.enabled)
+        if (!feature.enabled)
             return "Disabled";
-        if(feature.permission != null)
+        if (feature.permission != null)
             return "Enabled with permission";
         return "Enabled";
     }

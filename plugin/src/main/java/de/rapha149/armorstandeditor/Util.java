@@ -18,6 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -34,6 +35,8 @@ public class Util {
     private static final LegacyComponentSerializer SERIALIZER = LegacyComponentSerializer.builder().hexColors().character('&').build();
 
     public static final NamespacedKey PRIVATE_KEY = NamespacedKey.fromString("private", ArmorStandEditor.getInstance());
+    public static final NamespacedKey ITEM_KEY = NamespacedKey.fromString("item", ArmorStandEditor.getInstance());
+    public static final NamespacedKey ORIGINAL_SLOT_KEY = NamespacedKey.fromString("originalslot", ArmorStandEditor.getInstance());
     public static final List<Integer> EQUIPMENT_SLOTS = List.of(11, 20, 29, 38, 19, 21);
 
     public static final Page ARMOR_PAGE = new ArmorPage();
@@ -64,6 +67,19 @@ public class Util {
         anvilInvs.clear();
         Events.moving.values().forEach(Events::cancelMovement);
         Events.moving.clear();
+    }
+
+    public static void makeArmorstandItem(ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(ITEM_KEY, PersistentDataType.BYTE, (byte) 1);
+        item.setItemMeta(meta);
+    }
+
+    public static boolean isArmorstandItem(ItemStack item) {
+        PersistentDataContainer pdc;
+        return item.hasItemMeta() &&
+               (pdc = item.getItemMeta().getPersistentDataContainer()).has(ITEM_KEY, PersistentDataType.BYTE) &&
+               pdc.get(ITEM_KEY, PersistentDataType.BYTE) == 1;
     }
 
     public static void openGUI(Player player, ArmorStand armorStand, int page, boolean advancedControls) {

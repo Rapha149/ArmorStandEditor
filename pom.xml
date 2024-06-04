@@ -6,7 +6,7 @@
 
     <groupId>de.rapha149.armorstandeditor</groupId>
     <artifactId>ArmorStandEditor-parent</artifactId>
-    <version>1.5.4</version>
+    <version>1.5.5</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -21,6 +21,7 @@
         <module>1_20_R1</module>
         <module>1_20_R2</module>
         <module>1_20_R3</module>
+        <module>1_20_R4</module>
     </modules>
 
     <properties>
@@ -42,7 +43,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.5.3</version>
                 <executions>
                     <execution>
                         <phase>package</phase>

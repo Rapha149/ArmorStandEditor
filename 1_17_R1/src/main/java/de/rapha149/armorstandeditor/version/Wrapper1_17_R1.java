@@ -21,9 +21,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.Map;
-import java.util.Map.Entry;
-
 public class Wrapper1_17_R1 implements VersionWrapper {
 
     private final EntityArmorStand defaultArmorStand = new EntityArmorStand(((CraftWorld) Bukkit.getWorlds().get(0)).getHandle(), 0, 0, 0);
@@ -153,7 +150,6 @@ public class Wrapper1_17_R1 implements VersionWrapper {
         net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(new ItemStack(Material.ARMOR_STAND));
         NBTTagCompound itemNBT = nmsItem.getOrCreateTag();
         itemNBT.set("EntityTag", nbt);
-        itemNBT.setBoolean(ITEM_IDENTIFIER, true);
         ItemStack item = CraftItemStack.asBukkitCopy(nmsItem);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(armorStand.getCustomName());
@@ -165,16 +161,8 @@ public class Wrapper1_17_R1 implements VersionWrapper {
     }
 
     @Override
-    public boolean isArmorstandItem(ItemStack item) {
-        if (item == null)
-            return false;
-        NBTTagCompound nbt = CraftItemStack.asNMSCopy(item).getTag();
-        return nbt != null && nbt.hasKey(ITEM_IDENTIFIER) && nbt.getBoolean(ITEM_IDENTIFIER);
-    }
-
-    @Override
-    public ItemStack prepareRecipeResult(ItemStack item, int originalSlot) {
-        if (item.getType() != Material.ARMOR_STAND || !isArmorstandItem(item))
+    public ItemStack prepareRecipeResult(ItemStack item) {
+        if (item.getType() != Material.ARMOR_STAND)
             return null;
 
         net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
@@ -186,22 +174,6 @@ public class Wrapper1_17_R1 implements VersionWrapper {
             entityNBT.remove("HandItems");
         }
 
-        nbt.setInt(ORIGINAL_SLOT_IDENTIFIER, originalSlot);
         return CraftItemStack.asBukkitCopy(nmsItem);
-    }
-
-    @Override
-    public Entry<ItemStack, Integer> getRecipeResultAndOriginalSlot(ItemStack item) {
-        if (item.getType() != Material.ARMOR_STAND || !isArmorstandItem(item))
-            return null;
-
-        net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-        NBTTagCompound nbt = nmsItem.getTag();
-        if (!nbt.hasKey(ORIGINAL_SLOT_IDENTIFIER))
-            return null;
-
-        int originalSlot = nbt.getInt(ORIGINAL_SLOT_IDENTIFIER);
-        nbt.remove(ORIGINAL_SLOT_IDENTIFIER);
-        return Map.entry(CraftItemStack.asBukkitCopy(nmsItem), originalSlot);
     }
 }
