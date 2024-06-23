@@ -11,9 +11,9 @@ import net.minecraft.world.entity.decoration.EntityArmorStand;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_20_R4.CraftWorld;
-import org.bukkit.craftbukkit.v1_20_R4.entity.CraftArmorStand;
-import org.bukkit.craftbukkit.v1_20_R4.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_21_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_21_R1.entity.CraftArmorStand;
+import org.bukkit.craftbukkit.v1_21_R1.inventory.CraftItemStack;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -21,26 +21,26 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-public class Wrapper1_20_R4 implements VersionWrapper {
+public class Wrapper1_21_R1 implements VersionWrapper {
 
     private final EntityArmorStand defaultArmorStand = new EntityArmorStand(((CraftWorld) Bukkit.getWorlds().get(0)).getHandle(), 0, 0, 0);
 
     @Override
     public String getCustomNameForEdit(ArmorStand armorStand) {
         EntityArmorStand handle = ((CraftArmorStand) armorStand).getHandle();
-        if (!handle.ag())
+        if (!handle.ai())
             return null;
 
-        return EDIT_SERIALIZER.serialize(GSON_SERIALIZER.deserialize(ChatSerializer.a(handle.ah(), VanillaRegistries.a())));
+        return EDIT_SERIALIZER.serialize(GSON_SERIALIZER.deserialize(ChatSerializer.a(handle.aj(), VanillaRegistries.a())));
     }
 
     @Override
     public Component getCustomNameForDisplay(ArmorStand armorStand) {
         EntityArmorStand handle = ((CraftArmorStand) armorStand).getHandle();
-        if (!handle.ag())
+        if (!handle.ai())
             return null;
 
-        return GSON_SERIALIZER.deserialize(ChatSerializer.a(handle.ah(), VanillaRegistries.a()));
+        return GSON_SERIALIZER.deserialize(ChatSerializer.a(handle.aj(), VanillaRegistries.a()));
     }
 
     @Override
@@ -53,12 +53,12 @@ public class Wrapper1_20_R4 implements VersionWrapper {
     public void resetArmorStandBodyPart(ArmorStand armorStand, BodyPart bodyPart) {
         EntityArmorStand handle = ((CraftArmorStand) armorStand).getHandle();
         switch (bodyPart) {
-            case HEAD -> handle.a(defaultArmorStand.cg);
-            case BODY -> handle.b(defaultArmorStand.ch);
-            case LEFT_ARM -> handle.c(defaultArmorStand.ci);
-            case RIGHT_ARM -> handle.d(defaultArmorStand.cj);
-            case LEFT_LEG -> handle.e(defaultArmorStand.ck);
-            case RIGHT_LEG -> handle.f(defaultArmorStand.cl);
+            case HEAD -> handle.a(defaultArmorStand.ch);
+            case BODY -> handle.b(defaultArmorStand.ci);
+            case LEFT_ARM -> handle.c(defaultArmorStand.cj);
+            case RIGHT_ARM -> handle.d(defaultArmorStand.ck);
+            case LEFT_LEG -> handle.e(defaultArmorStand.cl);
+            case RIGHT_LEG -> handle.f(defaultArmorStand.cm);
         }
     }
 
@@ -68,28 +68,28 @@ public class Wrapper1_20_R4 implements VersionWrapper {
         Vector3f currentAngle, defaultAngle;
         switch (bodyPart) {
             case HEAD:
-                currentAngle = handle.cg;
-                defaultAngle = defaultArmorStand.cg;
-                break;
-            case BODY:
                 currentAngle = handle.ch;
                 defaultAngle = defaultArmorStand.ch;
                 break;
-            case LEFT_ARM:
+            case BODY:
                 currentAngle = handle.ci;
                 defaultAngle = defaultArmorStand.ci;
                 break;
-            case RIGHT_ARM:
+            case LEFT_ARM:
                 currentAngle = handle.cj;
                 defaultAngle = defaultArmorStand.cj;
                 break;
-            case LEFT_LEG:
+            case RIGHT_ARM:
                 currentAngle = handle.ck;
                 defaultAngle = defaultArmorStand.ck;
                 break;
-            case RIGHT_LEG:
+            case LEFT_LEG:
                 currentAngle = handle.cl;
                 defaultAngle = defaultArmorStand.cl;
+                break;
+            case RIGHT_LEG:
+                currentAngle = handle.cm;
+                defaultAngle = defaultArmorStand.cm;
                 break;
             default:
                 return;
@@ -122,8 +122,8 @@ public class Wrapper1_20_R4 implements VersionWrapper {
 
         NBTTagCompound nbt = new NBTTagCompound();
         nbt.a("id", "minecraft:armor_stand");
-        if (handle.ag())
-            nbt.a("CustomName", ChatSerializer.a(handle.ah(), VanillaRegistries.a()));
+        if (handle.ai())
+            nbt.a("CustomName", ChatSerializer.a(handle.aj(), VanillaRegistries.a()));
         nbt.a("CustomNameVisible", armorStand.isCustomNameVisible());
         if (armorStand.isInvisible())
             nbt.a("Tags", tags);
