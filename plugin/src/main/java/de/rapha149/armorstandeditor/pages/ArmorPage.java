@@ -4,6 +4,7 @@ import de.rapha149.armorstandeditor.ArmorStandEditor;
 import de.rapha149.armorstandeditor.Config;
 import de.rapha149.armorstandeditor.Config.FeaturesData;
 import de.rapha149.armorstandeditor.Events;
+import de.rapha149.armorstandeditor.Util;
 import de.rapha149.armorstandeditor.Util.ArmorStandStatus;
 import de.rapha149.armorstandeditor.version.BodyPart;
 import de.rapha149.armorstandeditor.version.Axis;
@@ -81,8 +82,10 @@ public class ArmorPage extends Page {
 
         gui.setItem(2, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.PLAYER_HEAD), "armorstands.move_body_parts.head").asGuiItem(event -> {
             if (event.isLeftClick()) {
-                gui.close(player);
-                Events.startMoveBodyPart(player, armorStand, BodyPart.HEAD);
+                Util.runOneTimeItemClickAction(status, () -> {
+                    gui.close(player);
+                    Events.startMoveBodyPart(player, armorStand, BodyPart.HEAD);
+                });
             } else if (event.isRightClick()) {
                 wrapper.resetArmorStandBodyPart(armorStand, BodyPart.HEAD);
                 playArmorStandHitSound(player);
@@ -90,8 +93,10 @@ public class ArmorPage extends Page {
         }), features.moveBodyParts, player));
         gui.setItem(3, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move_body_parts.right_arm").asGuiItem(event -> {
             if (event.isLeftClick()) {
-                gui.close(player);
-                Events.startMoveBodyPart(player, armorStand, BodyPart.RIGHT_ARM);
+                Util.runOneTimeItemClickAction(status, () -> {
+                    gui.close(player);
+                    Events.startMoveBodyPart(player, armorStand, BodyPart.RIGHT_ARM);
+                });
             } else if (event.isRightClick()) {
                 wrapper.resetArmorStandBodyPart(armorStand, BodyPart.RIGHT_ARM);
                 playArmorStandHitSound(player);
@@ -99,8 +104,10 @@ public class ArmorPage extends Page {
         }), features.moveBodyParts, player));
         gui.setItem(3, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move_body_parts.body").asGuiItem(event -> {
             if (event.isLeftClick()) {
-                gui.close(player);
-                Events.startMoveBodyPart(player, armorStand, BodyPart.BODY);
+                Util.runOneTimeItemClickAction(status, () -> {
+                    gui.close(player);
+                    Events.startMoveBodyPart(player, armorStand, BodyPart.BODY);
+                });
             } else if (event.isRightClick()) {
                 wrapper.resetArmorStandBodyPart(armorStand, BodyPart.BODY);
                 playArmorStandHitSound(player);
@@ -108,8 +115,10 @@ public class ArmorPage extends Page {
         }), features.moveBodyParts, player));
         gui.setItem(3, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move_body_parts.left_arm").asGuiItem(event -> {
             if (event.isLeftClick()) {
-                gui.close(player);
-                Events.startMoveBodyPart(player, armorStand, BodyPart.LEFT_ARM);
+                Util.runOneTimeItemClickAction(status, () -> {
+                    gui.close(player);
+                    Events.startMoveBodyPart(player, armorStand, BodyPart.LEFT_ARM);
+                });
             } else if (event.isRightClick()) {
                 wrapper.resetArmorStandBodyPart(armorStand, BodyPart.LEFT_ARM);
                 playArmorStandHitSound(player);
@@ -117,8 +126,10 @@ public class ArmorPage extends Page {
         }), features.moveBodyParts, player));
         gui.setItem(4, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move_body_parts.right_leg").asGuiItem(event -> {
             if (event.isLeftClick()) {
-                gui.close(player);
-                Events.startMoveBodyPart(player, armorStand, BodyPart.RIGHT_LEG);
+                Util.runOneTimeItemClickAction(status, () -> {
+                    gui.close(player);
+                    Events.startMoveBodyPart(player, armorStand, BodyPart.RIGHT_LEG);
+                });
             } else if (event.isRightClick()) {
                 wrapper.resetArmorStandBodyPart(armorStand, BodyPart.RIGHT_LEG);
                 playArmorStandHitSound(player);
@@ -126,23 +137,28 @@ public class ArmorPage extends Page {
         }), features.moveBodyParts, player));
         gui.setItem(4, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.STICK), "armorstands.move_body_parts.left_leg").asGuiItem(event -> {
             if (event.isLeftClick()) {
-                gui.close(player);
-                Events.startMoveBodyPart(player, armorStand, BodyPart.LEFT_LEG);
+                Util.runOneTimeItemClickAction(status, () -> {
+                    gui.close(player);
+                    Events.startMoveBodyPart(player, armorStand, BodyPart.LEFT_LEG);
+                });
             } else if (event.isRightClick()) {
                 wrapper.resetArmorStandBodyPart(armorStand, BodyPart.LEFT_LEG);
                 playArmorStandHitSound(player);
             }
         }), features.moveBodyParts, player));
 
-        gui.setItem(4, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.FEATHER), "armorstands.move_position").asGuiItem(event -> {
-            gui.close(player);
-            Events.startMovePosition(player, armorStand, event.isRightClick());
-        }), features.movePosition, player));
+        gui.setItem(4, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.FEATHER), "armorstands.move_position").asGuiItem(event ->
+                Util.runOneTimeItemClickAction(status, () -> {
+                    gui.close(player);
+                    Events.startMovePosition(player, armorStand, event.isRightClick());
+                })), features.movePosition, player));
 
         gui.setItem(5, 6, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.RED_DYE), "armorstands.move_position.x").asGuiItem(event -> {
             if (event.getClick() == ClickType.DROP) {
-                gui.close(player);
-                Events.startSnapInMovePosition(player, armorStand, Axis.X);
+                Util.runOneTimeItemClickAction(status, () -> {
+                    gui.close(player);
+                    Events.startSnapInMovePosition(player, armorStand, Axis.X);
+                });
             } else {
                 armorStand.teleport(armorStand.getLocation().add(event.isLeftClick() ? 0.05 : -0.05, 0, 0));
                 playStepSound(player);
@@ -152,8 +168,10 @@ public class ArmorPage extends Page {
                 getMessage("armorstands.move_position.y.name") + (armorStand.hasGravity() ? getMessage("armorstands.move_position.y.gravity_warning") : ""),
                 getMessage("armorstands.move_position.y.lore")).asGuiItem(event -> {
             if (event.getClick() == ClickType.DROP) {
-                gui.close(player);
-                Events.startSnapInMovePosition(player, armorStand, Axis.Y);
+                Util.runOneTimeItemClickAction(status, () -> {
+                    gui.close(player);
+                    Events.startSnapInMovePosition(player, armorStand, Axis.Y);
+                });
             } else {
                 armorStand.teleport(armorStand.getLocation().add(0, event.isLeftClick() ? 0.05 : -0.05, 0));
                 playStepSound(player);
@@ -161,8 +179,10 @@ public class ArmorPage extends Page {
         }), features.movePosition, player));
         gui.setItem(5, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.BLUE_DYE), "armorstands.move_position.z").asGuiItem(event -> {
             if (event.getClick() == ClickType.DROP) {
-                gui.close(player);
-                Events.startSnapInMovePosition(player, armorStand, Axis.Z);
+                Util.runOneTimeItemClickAction(status, () -> {
+                    gui.close(player);
+                    Events.startSnapInMovePosition(player, armorStand, Axis.Z);
+                });
             } else {
                 armorStand.teleport(armorStand.getLocation().add(0, 0, event.isLeftClick() ? 0.05 : -0.05));
                 playStepSound(player);
@@ -172,8 +192,10 @@ public class ArmorPage extends Page {
         gui.setItem(2, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.ENDER_EYE), "armorstands.rotate",
                 Map.of("%rotation%", rotationToString(armorStand.getLocation().getYaw()))).asGuiItem(event -> {
             if (event.getClick() == ClickType.DROP) {
-                gui.close(player);
-                Events.startRotationMovement(player, armorStand);
+                Util.runOneTimeItemClickAction(status, () -> {
+                    gui.close(player);
+                    Events.startRotationMovement(player, armorStand);
+                });
             } else {
                 if (event.getClick() == ClickType.CONTROL_DROP) {
                     armorStand.setRotation(0, armorStand.getLocation().getPitch());

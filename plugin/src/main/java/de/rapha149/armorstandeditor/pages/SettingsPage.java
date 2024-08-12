@@ -94,13 +94,15 @@ public class SettingsPage extends Page {
                 return;
             }
 
-            gui.close(player);
-            ItemStack item = wrapper.getArmorstandItem(armorStand, PRIVATE_KEY);
-            Util.makeArmorstandItem(item);
-            if (player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR)
-                armorStand.remove();
-            inv.addItem(item);
-            playArmorStandBreakSound(player);
+            Util.runOneTimeItemClickAction(status, () -> {
+                gui.close(player);
+                ItemStack item = wrapper.getArmorstandItem(armorStand, PRIVATE_KEY);
+                Util.makeArmorstandItem(item);
+                if (player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR)
+                    armorStand.remove();
+                inv.addItem(item);
+                playArmorStandBreakSound(player);
+            });
         }), features.giveItem, player));
 
         setRenameItem(player, armorStand, gui);
@@ -108,14 +110,16 @@ public class SettingsPage extends Page {
         gui.setItem(4, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.LEAD), "armorstands.vehicle")
                 .glow(!armorStand.getPassengers().isEmpty()).asGuiItem(event -> {
                     if (event.isLeftClick()) {
-                        gui.close(player);
-                        if (Events.isPlayerDoingSomethingOutsideOfInv(player)) {
-                            player.sendMessage(getMessage("not_possible_now"));
-                            return;
-                        }
+                        Util.runOneTimeItemClickAction(status, () -> {
+                            gui.close(player);
+                            if (Events.isPlayerDoingSomethingOutsideOfInv(player)) {
+                                player.sendMessage(getMessage("not_possible_now"));
+                                return;
+                            }
 
-                        Events.vehicleSelection.put(player, Map.entry(armorStand, false));
-                        Events.runTask();
+                            Events.vehicleSelection.put(player, Map.entry(armorStand, false));
+                            Events.runTask();
+                        });
                     } else if (event.isRightClick()) {
                         if (armorStand.eject()) {
                             playExperienceSound(player);
@@ -128,14 +132,16 @@ public class SettingsPage extends Page {
         gui.setItem(5, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.SADDLE), "armorstands.passenger")
                 .glow(armorStand.isInsideVehicle()).asGuiItem(event -> {
                     if (event.isLeftClick()) {
-                        gui.close(player);
-                        if (Events.isPlayerDoingSomethingOutsideOfInv(player)) {
-                            player.sendMessage(getMessage("not_possible_now"));
-                            return;
-                        }
+                        Util.runOneTimeItemClickAction(status, () -> {
+                            gui.close(player);
+                            if (Events.isPlayerDoingSomethingOutsideOfInv(player)) {
+                                player.sendMessage(getMessage("not_possible_now"));
+                                return;
+                            }
 
-                        Events.vehicleSelection.put(player, Map.entry(armorStand, true));
-                        Events.runTask();
+                            Events.vehicleSelection.put(player, Map.entry(armorStand, true));
+                            Events.runTask();
+                        });
                     } else if (event.isRightClick()) {
                         if (armorStand.leaveVehicle()) {
                             playExperienceSound(player);

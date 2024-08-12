@@ -410,6 +410,15 @@ public class Util {
         return true;
     }
 
+    public static void runOneTimeItemClickAction(ArmorStandStatus status, Runnable action) {
+        Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> {
+            if (status.oneTimeItemClicked)
+                return;
+            status.oneTimeItemClicked = true;
+            action.run();
+        });
+    }
+
     public static class ArmorStandStatus {
 
         public long time;
@@ -417,6 +426,7 @@ public class Util {
         public ArmorStand armorStand;
         public Gui gui;
         public boolean saveEquipment = false;
+        public boolean oneTimeItemClicked = false;
 
         public ArmorStandStatus(Player player, ArmorStand armorStand, Gui gui) {
             this.time = System.currentTimeMillis();
