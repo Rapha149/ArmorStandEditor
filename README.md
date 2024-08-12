@@ -48,6 +48,9 @@ You can set other permissions in the config:
 - Each feature can have its own permission (Default: none)
 
 ## Default config
+<details>
+<summary>Expand ↓</summary>
+
 ```yaml
 # ArmorStandEditor version 1.5.7
 # Github: https://github.com/Rapha149/ArmorStandEditor
@@ -686,6 +689,7 @@ presets:
       z: 0.0
   name: Sad
 ```
+</details>
 
 ## Additional information
 
