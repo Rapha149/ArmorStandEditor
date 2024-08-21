@@ -7,7 +7,7 @@
     <parent>
         <artifactId>ArmorStandEditor-parent</artifactId>
         <groupId>de.rapha149.armorstandeditor</groupId>
-        <version>1.5.7</version>
+        <version>1.5.8</version>
     </parent>
 
     <artifactId>ArmorStandEditor</artifactId>
@@ -43,7 +43,7 @@
         <dependency>
             <groupId>net.wesjd</groupId>
             <artifactId>anvilgui</artifactId>
-            <version>1.9.6-SNAPSHOT</version>
+            <version>1.10.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
