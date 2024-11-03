@@ -6,7 +6,7 @@
 
     <groupId>de.rapha149.armorstandeditor</groupId>
     <artifactId>ArmorStandEditor-parent</artifactId>
-    <version>1.5.8</version>
+    <version>1.5.9</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -23,6 +23,7 @@
         <module>1_20_R3</module>
         <module>1_20_R4</module>
         <module>1_21_R1</module>
+        <module>1_21_R2</module>
     </modules>
 
     <properties>
@@ -79,6 +80,10 @@
     </build>
 
     <repositories>
+        <repository>
+            <id>nms-repo</id>
+            <url>https://repo.codemc.io/repository/nms/</url>
+        </repository>
         <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
