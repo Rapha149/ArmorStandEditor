@@ -7,7 +7,7 @@
     <parent>
         <artifactId>ArmorStandEditor-parent</artifactId>
         <groupId>de.rapha149.armorstandeditor</groupId>
-        <version>1.5.9</version>
+        <version>1.5.10</version>
     </parent>
 
     <artifactId>ArmorStandEditor</artifactId>
@@ -125,6 +125,12 @@
         <dependency>
             <groupId>de.rapha149.armorstandeditor</groupId>
             <artifactId>ArmorStandEditor-1_21_R2</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.rapha149.armorstandeditor</groupId>
+            <artifactId>ArmorStandEditor-1_21_R3</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>

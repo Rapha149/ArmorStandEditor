@@ -115,6 +115,8 @@ public final class ArmorStandEditor extends JavaPlugin {
             return "1_21_R1";
         } else if (major == 21 && (minor == 2 || minor == 3)) { // 1.21.2, 1.21.3
             return "1_21_R2";
+        } else if (major == 21 && (minor == 4)) { // 1.21.4
+            return "1_21_R4";
         }
 
         throw new IllegalStateException("ArmorStandEditor does not support bukkit server version \"" + bukkitVersion + "\"");
