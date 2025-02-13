@@ -52,7 +52,7 @@ You can set other permissions in the config:
 <summary>Expand ↓</summary>
 
 ```yaml
-# ArmorStandEditor version 1.5.10
+# ArmorStandEditor version 1.5.11
 # Github: https://github.com/Rapha149/ArmorStandEditor
 # Spigot: https://www.spigotmc.org/resources/armorstandeditor.108120/
 

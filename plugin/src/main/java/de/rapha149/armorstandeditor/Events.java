@@ -6,9 +6,10 @@ import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandBodyPart
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandPositionMovement;
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandPositionMovement.ArmorStandPositionSnapInMovement;
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandRotationMovement;
+import de.rapha149.armorstandeditor.Util.ArmorStandStatus;
+import de.rapha149.armorstandeditor.version.Axis;
 import de.rapha149.armorstandeditor.version.BodyPart;
 import de.rapha149.armorstandeditor.version.Direction;
-import de.rapha149.armorstandeditor.version.Axis;
 import de.rapha149.armorstandeditor.version.VersionWrapper;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -45,7 +46,6 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -115,25 +115,37 @@ public class Events implements Listener {
             return;
 
         UUID uuid = entity.getUniqueId();
-        AtomicBoolean reloadDrops = new AtomicBoolean(false);
-        new HashMap<>(Util.invs).values().stream().filter(status -> status.armorStand.getUniqueId().equals(uuid)).forEach(status -> {
-            if (Util.saveEquipment(status))
-                reloadDrops.set(true);
-            status.gui.close(status.player);
-        });
+        List<ItemStack> armorContents = null;
+        for (ArmorStandStatus status : new HashMap<>(Util.invs).values()) {
+            if (status.armorStand.getUniqueId().equals(uuid)) {
+                if (Util.saveEquipment(status)) {
+                    EntityEquipment equipment = armorStand.getEquipment();
+                    armorContents = List.of(
+                            equipment.getHelmet(),
+                            equipment.getChestplate(),
+                            equipment.getLeggings(),
+                            equipment.getBoots(),
+                            equipment.getItemInMainHand(),
+                            equipment.getItemInOffHand()
+                    );
+                    equipment.clear();
+                }
+                status.gui.close(status.player);
+            }
+        }
 
-        if (reloadDrops.get()) {
+        if (armorContents != null) {
             List<ItemStack> drops = event.getDrops();
-            drops.clear();
-            drops.add(new ItemStack(Material.ARMOR_STAND));
-
-            EntityEquipment equipment = armorStand.getEquipment();
-            drops.add(equipment.getHelmet());
-            drops.add(equipment.getChestplate());
-            drops.add(equipment.getLeggings());
-            drops.add(equipment.getBoots());
-            drops.add(equipment.getItemInMainHand());
-            drops.add(equipment.getItemInOffHand());
+            boolean armorStandItem = false;
+            for (Iterator<ItemStack> iterator = drops.iterator(); iterator.hasNext(); ) {
+                ItemStack item = iterator.next();
+                if(item.getType() == Material.ARMOR_STAND && !armorStandItem) {
+                    armorStandItem = true;
+                    item.setAmount(1);
+                } else
+                    iterator.remove();
+            }
+            armorContents.stream().filter(item -> item != null && item.getType() != Material.AIR).forEach(drops::add);
         }
     }
 
@@ -897,7 +909,7 @@ public class Events implements Listener {
 
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        if(!pdc.has(Util.ORIGINAL_SLOT_KEY, PersistentDataType.INTEGER))
+        if (!pdc.has(Util.ORIGINAL_SLOT_KEY, PersistentDataType.INTEGER))
             return;
 
         int originalSlot = pdc.get(Util.ORIGINAL_SLOT_KEY, PersistentDataType.INTEGER);

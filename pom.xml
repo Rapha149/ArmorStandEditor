@@ -6,7 +6,7 @@
 
     <groupId>de.rapha149.armorstandeditor</groupId>
     <artifactId>ArmorStandEditor-parent</artifactId>
-    <version>1.5.10</version>
+    <version>1.5.11</version>
     <packaging>pom</packaging>
 
     <modules>

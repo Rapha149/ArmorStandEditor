@@ -1,5 +1,5 @@
 name: ArmorStandEditor
-version: 1.5.10
+version: 1.5.11
 main: de.rapha149.armorstandeditor.ArmorStandEditor
 authors: [ Rapha149 ]
 description: A plugin to edit armor stands simply by interacting with them.
