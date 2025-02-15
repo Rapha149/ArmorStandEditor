@@ -67,15 +67,19 @@ public class ArmorPage extends Page {
             });
 
             gui.setDragAction(event -> {
-                for (Integer slot : event.getInventorySlots()) {
-                    if (!EQUIPMENT_SLOTS.contains(slot)) {
-                        event.setCancelled(true);
-                        break;
+                if (!status.saveEquipment) {
+                    event.setCancelled(true);
+                } else {
+                    for (Integer slot : event.getInventorySlots()) {
+                        if (!EQUIPMENT_SLOTS.contains(slot)) {
+                            event.setCancelled(true);
+                            break;
+                        }
                     }
                 }
             });
             gui.setDefaultTopClickAction(event -> {
-                if (!EQUIPMENT_SLOTS.contains(event.getRawSlot()))
+                if (!status.saveEquipment || !EQUIPMENT_SLOTS.contains(event.getRawSlot()))
                     event.setCancelled(true);
             });
         }
