@@ -82,6 +82,7 @@ public class ArmorPage extends Page {
                 if (!status.saveEquipment || !EQUIPMENT_SLOTS.contains(event.getRawSlot()))
                     event.setCancelled(true);
             });
+            armorStand.getEquipment().clear();
         }
 
         gui.setItem(2, 7, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.PLAYER_HEAD), "armorstands.move_body_parts.head").asGuiItem(event -> {
