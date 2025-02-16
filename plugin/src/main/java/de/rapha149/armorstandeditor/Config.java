@@ -34,6 +34,10 @@ public class Config {
                                  "\nIf you want a feature to be enabled and everybody to be able to use it, set the permission to \"null\".");
         comments.put("features.replaceEquipment", "Replacing the armor stand's equipment (armor and hand items) in the ASE inventory.");
         comments.put("features.replaceEquipment.useDeactivatedItem", "Whether or not to replace the armor and hand items of the armor stand with the disabled item when this feature is disabled.");
+        comments.put("features.replaceEquipment.clearItemsOnOpen", """
+                Whether or not to clear the armor stand's equipment when the gui is opened. This will prevent duplication bugs that players can cause using mods.
+                If you're running a small server with friends, you can choose to disable this option if you don't want the equipment to vanish every time you open the gui.
+                However, if you're running a server with a few more players, it is recommended to leave this option enabled.""");
         comments.put("features.moveBodyParts", "Moving the armor stand's body parts.");
         comments.put("features.movePosition", "Moving the armor stand's position.");
         comments.put("features.rotate", "Changing the armor stand's rotation.");
@@ -276,6 +280,7 @@ public class Config {
         public static class ReplaceEquipmentFeatureData extends FeatureData {
 
             public boolean useDeactivatedItem = false;
+            public boolean clearItemsOnOpen = true;
         }
 
         public static class VehicleFeatureData extends FeatureData {
