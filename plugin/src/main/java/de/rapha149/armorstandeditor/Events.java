@@ -35,7 +35,7 @@ import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.CraftingInventory;
-import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -50,6 +50,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
+import static de.rapha149.armorstandeditor.Util.EQUIPMENT_SLOTS;
 
 public class Events implements Listener {
 
@@ -118,17 +119,11 @@ public class Events implements Listener {
         List<ItemStack> armorContents = null;
         for (ArmorStandStatus status : new HashMap<>(Util.invs).values()) {
             if (status.armorStand.getUniqueId().equals(uuid)) {
-                if (Util.saveEquipment(status)) {
-                    EntityEquipment equipment = armorStand.getEquipment();
-                    armorContents = List.of(
-                            equipment.getHelmet(),
-                            equipment.getChestplate(),
-                            equipment.getLeggings(),
-                            equipment.getBoots(),
-                            equipment.getItemInMainHand(),
-                            equipment.getItemInOffHand()
-                    );
-                    equipment.clear();
+                if (status.saveEquipment) {
+                    status.saveEquipment = false;
+                    Inventory inv = status.gui.getInventory();
+                    armorContents = EQUIPMENT_SLOTS.stream().map(slot -> Optional.ofNullable(inv.getItem(slot)).orElseGet(() -> new ItemStack(Material.AIR))).toList();
+                    armorStand.getEquipment().clear();
                 }
                 status.gui.close(status.player);
             }
@@ -139,7 +134,7 @@ public class Events implements Listener {
             boolean armorStandItem = false;
             for (Iterator<ItemStack> iterator = drops.iterator(); iterator.hasNext(); ) {
                 ItemStack item = iterator.next();
-                if(item.getType() == Material.ARMOR_STAND && !armorStandItem) {
+                if (item.getType() == Material.ARMOR_STAND && !armorStandItem) {
                     armorStandItem = true;
                     item.setAmount(1);
                 } else
