@@ -302,17 +302,21 @@ public class Util {
         return replaceWithDeactivatedItem(item, player, status, forceOriginalMaterial);
     }
 
-    @SuppressWarnings("deprecation")
     public static GuiItem replaceWithDeactivatedItem(GuiItem item, Player player, int status, boolean forceOriginalMaterial) {
         ItemStack itemStack = item.getItemStack();
-        Material mat = forceOriginalMaterial ? itemStack.getType() : getDeactivatedMaterial(itemStack.getType());
+        Optional<String> name = itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName() ? Optional.of(itemStack.getItemMeta().getDisplayName()) : Optional.empty();
+        return replaceWithDeactivatedItem(itemStack.getType(), name, player, status, forceOriginalMaterial);
+    }
+
+    @SuppressWarnings("deprecation")
+    public static GuiItem replaceWithDeactivatedItem(Material original, Optional<String> name, Player player, int status, boolean forceOriginalMaterial) {
+        Material mat = forceOriginalMaterial ? original : getDeactivatedMaterial(original);
 
         ItemBuilder builder = ItemBuilder.from(mat);
         if (mat == Material.AIR)
             return builder.asGuiItem();
 
-        if (itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName())
-            builder.setName(itemStack.getItemMeta().getDisplayName());
+        name.ifPresent(builder::setName);
         builder.lore(Arrays.stream(getMessage("armorstands.features." + (status == 2 ? "no_permission" : "deactivated")).split("\n"))
                 .map(line -> (Component) Component.text(line)).collect(Collectors.toList()));
 

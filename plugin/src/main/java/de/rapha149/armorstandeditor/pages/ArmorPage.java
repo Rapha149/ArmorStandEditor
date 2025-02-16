@@ -26,6 +26,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -45,16 +46,22 @@ public class ArmorPage extends Page {
         gui.setItem(2, 2, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.GOLDEN_HELMET), "armorstands.equipment")
                 .flags(ItemFlag.HIDE_ATTRIBUTES).asGuiItem(), features.replaceEquipment, player));
         EntityEquipment equipment = armorStand.getEquipment();
-        ItemStack[] equipmentItems = {equipment.getHelmet(),
+        ItemStack[] equipmentItems = {
+                equipment.getHelmet(),
                 equipment.getChestplate(),
                 equipment.getLeggings(),
                 equipment.getBoots(),
                 equipment.getItemInMainHand(),
-                equipment.getItemInOffHand()};
+                equipment.getItemInOffHand()
+        };
 
-        if (isDeactivated(features.replaceEquipment, player)) {
-            for (int i = 0; i < EQUIPMENT_SLOTS.size(); i++)
-                gui.setItem(EQUIPMENT_SLOTS.get(i), ItemBuilder.from(equipmentItems[i]).asGuiItem(event -> playBassSound(player)));
+        int equipmentStatus = getDeactivatedStatus(features.replaceEquipment, player);
+        if (equipmentStatus != 0) {
+            for (int i = 0; i < EQUIPMENT_SLOTS.size(); i++) {
+                gui.setItem(EQUIPMENT_SLOTS.get(i), !features.replaceEquipment.useDeactivatedItem ?
+                        ItemBuilder.from(equipmentItems[i]).asGuiItem(event -> playBassSound(player)) :
+                        replaceWithDeactivatedItem(equipmentItems[i].getType(), Optional.of(getMessage("armorstands.equipment.name")), player, equipmentStatus, false));
+            }
 
             gui.disableAllInteractions();
         } else {
