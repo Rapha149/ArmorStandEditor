@@ -172,9 +172,11 @@ public class ArmorPage extends Page {
                     gui.close(player);
                     Events.startSnapInMovePosition(player, armorStand, Axis.X);
                 });
-            } else {
-                armorStand.teleport(armorStand.getLocation().add(event.isLeftClick() ? 0.05 : -0.05, 0, 0));
+            } else if (teleportArmorStand(player, armorStand, armorStand.getLocation().add(event.isLeftClick() ? 0.05 : -0.05, 0, 0))) {
                 playStepSound(player);
+            } else {
+                player.sendMessage(getMessage("armorstands.move_position.too_far"));
+                playBassSound(player);
             }
         }), features.movePosition, player));
         gui.setItem(5, 7, checkDeactivated(applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.LIME_DYE),
@@ -185,9 +187,11 @@ public class ArmorPage extends Page {
                     gui.close(player);
                     Events.startSnapInMovePosition(player, armorStand, Axis.Y);
                 });
-            } else {
-                armorStand.teleport(armorStand.getLocation().add(0, event.isLeftClick() ? 0.05 : -0.05, 0));
+            } else if (teleportArmorStand(player, armorStand, armorStand.getLocation().add(0, event.isLeftClick() ? 0.05 : -0.05, 0))) {
                 playStepSound(player);
+            } else {
+                player.sendMessage(getMessage("armorstands.move_position.too_far"));
+                playBassSound(player);
             }
         }), features.movePosition, player));
         gui.setItem(5, 8, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.BLUE_DYE), "armorstands.move_position.z").asGuiItem(event -> {
@@ -196,9 +200,11 @@ public class ArmorPage extends Page {
                     gui.close(player);
                     Events.startSnapInMovePosition(player, armorStand, Axis.Z);
                 });
-            } else {
-                armorStand.teleport(armorStand.getLocation().add(0, 0, event.isLeftClick() ? 0.05 : -0.05));
+            } else if (teleportArmorStand(player, armorStand, armorStand.getLocation().add(0, 0, event.isLeftClick() ? 0.05 : -0.05))) {
                 playStepSound(player);
+            } else {
+                player.sendMessage(getMessage("armorstands.move_position.too_far"));
+                playBassSound(player);
             }
         }), features.movePosition, player));
 

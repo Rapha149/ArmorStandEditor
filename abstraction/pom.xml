@@ -7,7 +7,7 @@
     <parent>
         <artifactId>ArmorStandEditor-parent</artifactId>
         <groupId>de.rapha149.armorstandeditor</groupId>
-        <version>1.5.13</version>
+        <version>1.5.14</version>
     </parent>
 
     <artifactId>ArmorStandEditor-abstraction</artifactId>
@@ -16,7 +16,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.17-R0.1-SNAPSHOT</version>
+            <version>1.18-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

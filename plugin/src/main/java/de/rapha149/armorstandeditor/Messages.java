@@ -49,7 +49,7 @@ public class Messages {
                 &7   slots to the right of this item.
                 &7» Changes take effect as soon as
                 &7   the inventory or the page is closed.
-                                
+                
                 &7» Slots:
                 &#ff1e00   1. Helmet
                 &#ff7300   2. Chestplate
@@ -106,14 +106,15 @@ public class Messages {
                 &7» Right click ➜ Move the armor stand by -0.05 blocks
                 &7» Drop ➜ Move the armor stand with snap-in positions
                 &7   (look at particles to move the armor stand)""");
+        messageConfig.addDefault("armorstands.move_position.too_far", "%prefix%§cYou can't move the armor stand that far away.");
         messageConfig.addDefault("armorstands.rotate.title", "&dLeft click: Finish &7| &dRight click: Cancel");
         messageConfig.addDefault("armorstands.rotate.name", "&dRotate");
         messageConfig.addDefault("armorstands.rotate.lore", """
                 &7» Current rotation ➜ &d%rotation%°
-                                
+                
                 &7» Left click ➜ Rotate &d45° &7clockwise
                 &7» Right click ➜ Rotate &d45° &7counterclockwise
-                                
+                
                 &7» Shift + Left click ➜ Rotate &d10° &7clockwise
                 &7» Shift + Right click ➜ Rotate &d10° &7counterclockwise
                                 

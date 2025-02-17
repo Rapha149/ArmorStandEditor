@@ -26,14 +26,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntityInteractEvent;
-import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.event.world.EntitiesUnloadEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -68,10 +66,7 @@ public class Events implements Listener {
 
     @EventHandler
     public void onSpawn(EntitySpawnEvent event) {
-        if (!(event.getEntity() instanceof ArmorStand armorStand))
-            return;
-
-        if (armorStand.removeScoreboardTag(INVISIBLE_TAG))
+        if (event.getEntity() instanceof ArmorStand armorStand && armorStand.removeScoreboardTag(INVISIBLE_TAG))
             Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> armorStand.setInvisible(true));
     }
 
@@ -141,6 +136,25 @@ public class Events implements Listener {
                     iterator.remove();
             }
             armorContents.stream().filter(item -> item != null && item.getType() != Material.AIR).forEach(drops::add);
+        }
+    }
+
+    @EventHandler
+    public void onPortal(EntityPortalEvent event) {
+        closeGui(event.getEntity());
+    }
+
+    @EventHandler
+    public void onUnload(EntitiesUnloadEvent event) {
+        event.getEntities().forEach(this::closeGui);
+    }
+
+    private void closeGui(Entity entity) {
+        if (entity.getType() == EntityType.ARMOR_STAND) {
+            UUID uuid = entity.getUniqueId();
+            new ArrayList<>(Util.invs.values()).stream()
+                    .filter(status -> status.armorStand.getUniqueId().equals(uuid))
+                    .forEach(status -> status.gui.close(status.player));
         }
     }
 
@@ -601,154 +615,6 @@ public class Events implements Listener {
         } else
             Util.playArmorStandBreakSound(player);
     }
-
-
-    /*private void setEquipmentItem(Player player, ArmorStandStatus status, Gui gui, EquipmentSlot slot) {
-        int index, row, col;
-        switch (slot) {
-            case HEAD:
-                index = 0;
-                row = 2;
-                col = 3;
-                break;
-            case CHEST:
-                index = 1;
-                row = 3;
-                col = 3;
-                break;
-            case LEGS:
-                index = 2;
-                row = 4;
-                col = 3;
-                break;
-            case FEET:
-                index = 3;
-                row = 5;
-                col = 3;
-                break;
-            case HAND:
-                index = 4;
-                row = 3;
-                col = 2;
-                break;
-            case OFF_HAND:
-                index = 5;
-                row = 3;
-                col = 4;
-                break;
-            default:
-                return;
-        }
-
-        AtomicBoolean eventFired = new AtomicBoolean(false);
-        ItemStack current = status.equipment[index];
-        if (current == null || current.getType().isAir()) {
-            String key = switch (slot) {
-                case HEAD -> "helmet";
-                case CHEST -> "chestplate";
-                case LEGS -> "leggings";
-                case FEET -> "boots";
-                case HAND -> "mainhand";
-                case OFF_HAND -> "offhand";
-            };
-
-            gui.updateItem(row, col, applyNameAndLore(ItemBuilder.from(Material.WHITE_STAINED_GLASS_PANE),
-                    "armorstands.equipment." + key, "armorstands.equipment.lore", false).asGuiItem(event -> {
-                ArmorStandEditor.getInstance().getLogger().info("Clicked empty slot");
-                if (eventFired.get()) {
-                    event.setCancelled(true);
-                    return;
-                }
-                eventFired.set(true);
-
-                ItemStack item;
-                if (event.getClick() == ClickType.NUMBER_KEY) {
-                    item = player.getInventory().getItem(event.getHotbarButton());
-                    item = item == null ? new ItemStack(Material.AIR) : item.clone();
-                } else {
-                    item = event.getCursor().clone();
-                    if (event.isRightClick())
-                        item.setAmount(1);
-                }
-
-                event.setCancelled(false);
-                event.setCurrentItem(new ItemStack(Material.AIR));
-                status.notCancelled.add(event.hashCode());
-                status.equipment[index] = ItemNbt.removeTag(item, "mf-gui");
-                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> setEquipmentItem(player, status, gui, slot));
-            }));
-        } else {
-            gui.updateItem(row, col, ItemBuilder.from(current).asGuiItem(event -> {
-                ArmorStandEditor.getInstance().getLogger().info("Clicked full slot");
-                if (eventFired.get()) {
-                    event.setCancelled(true);
-                    return;
-                }
-                eventFired.set(true);
-
-                ItemStack item;
-                ItemStack cursor = event.getCursor();
-                if (event.getClick() == ClickType.NUMBER_KEY) {
-                    item = player.getInventory().getItem(event.getHotbarButton());
-                    item = item == null ? new ItemStack(Material.AIR) : item.clone();
-                } else if (cursor.isSimilar(current)) {
-                    item = current.clone();
-                    item.setAmount(item.getAmount() + (event.isLeftClick() ? cursor.getAmount() : 1));
-                } else if (event.isRightClick() && cursor.getType() == Material.AIR) {
-                    if (cursor.getType() == Material.AIR) {
-                        item = current.clone();
-                        item.setAmount((int) (item.getAmount() / 2D));
-                    } else
-                        item = cursor.clone();
-                } else
-                    item = cursor.clone();
-
-                event.setCancelled(false);
-                event.setCurrentItem(status.equipment[index].clone());
-                status.notCancelled.add(event.hashCode());
-                status.equipment[index] = ItemNbt.removeTag(item, "mf-gui");
-                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> setEquipmentItem(player, status, gui, slot));
-            }));
-        }
-    }*/
-
-    /*private ItemStack[] getEquipment(ArmorStand armorStand, Player player, boolean glassPanes) {
-        EntityEquipment equipment = armorStand.getEquipment();
-        return new ItemStack[]{getEquipmentItem(EquipmentSlot.HEAD, equipment.getHelmet(), player, glassPanes),
-                getEquipmentItem(EquipmentSlot.CHEST, equipment.getChestplate(), player, glassPanes),
-                getEquipmentItem(EquipmentSlot.LEGS, equipment.getLeggings(), player, glassPanes),
-                getEquipmentItem(EquipmentSlot.FEET, equipment.getBoots(), player, glassPanes),
-                getEquipmentItem(EquipmentSlot.HAND, equipment.getItemInMainHand(), player, glassPanes),
-                getEquipmentItem(EquipmentSlot.OFF_HAND, equipment.getItemInOffHand(), player, glassPanes)};
-    }
-
-    private ItemStack getEquipmentItem(EquipmentSlot slot, ItemStack current, Player player, boolean glassPanes) {
-        ReplaceEquipmentFeatureData feature = Config.get().features.replaceEquipment;
-        boolean deactivated = isDeactivated(feature, player);
-
-        if (current != null && !current.getType().isAir() && (!deactivated || !feature.useDeactivatedItem))
-            return current;
-        if (!glassPanes)
-            return new ItemStack(Material.AIR);
-
-        ItemStack item = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-        ItemMeta meta = item.getItemMeta();
-
-        String key = switch (slot) {
-            case HEAD -> "helmet";
-            case CHEST -> "chestplate";
-            case LEGS -> "leggings";
-            case FEET -> "boots";
-            case HAND -> "mainhand";
-            case OFF_HAND -> "offhand";
-        };
-
-        meta.setDisplayName(getMessage("armorstands.equipment." + key));
-        meta.setLore(Arrays.asList(getMessage("armorstands.equipment.lore").split("\n")));
-        item.setItemMeta(meta);
-
-        return ItemNbt.setString(checkDeactivated(item, feature, player), "empty_slot", "");
-    }*/
 
     public static class ArmorStandMovement {
 

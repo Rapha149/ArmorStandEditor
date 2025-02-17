@@ -359,6 +359,15 @@ public class Util {
         player.playSound(player.getLocation(), sound, SoundCategory.MASTER, volume, 1F);
     }
 
+    public static boolean teleportArmorStand(Player player, ArmorStand armorStand, Location loc) {
+        int max = Config.get().features.movePosition.maxDistanceSquared;
+        if (max == 0 || (player.getWorld().getUID().equals(loc.getWorld().getUID()) && player.getLocation().distanceSquared(loc) <= max)) {
+            armorStand.teleport(loc);
+            return true;
+        }
+        return false;
+    }
+
     public static boolean isArmorStandUsed(Player exclude, ArmorStand armorStand) {
         UUID uuid = exclude.getUniqueId();
         UUID armorStandUuid = armorStand.getUniqueId();

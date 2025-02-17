@@ -40,6 +40,11 @@ public class Config {
                 However, if you're running a server with a few more players, it is recommended to leave this option enabled.""");
         comments.put("features.moveBodyParts", "Moving the armor stand's body parts.");
         comments.put("features.movePosition", "Moving the armor stand's position.");
+        comments.put("features.movePosition.maxDistance", """
+                The maximum distance the player can move an armor stand away from himself.
+                This option only affects the movement controlled by the buttons in the gui, not the movement controlled by going somewhere / looking around.
+                This limit exists to prevent players from unloading armor stands by moving them far away and then duplicating items.
+                You can set increase it or set it to 0 to allow an infinite distance, but this is not recommended.""");
         comments.put("features.rotate", "Changing the armor stand's rotation.");
         comments.put("features.advancedControls", "Using advanced controls to change position, rotation and pose." +
                                                   "\nThey can be individually enabled/disabled via the options above.");
@@ -251,7 +256,7 @@ public class Config {
 
         public ReplaceEquipmentFeatureData replaceEquipment = new ReplaceEquipmentFeatureData();
         public FeatureData moveBodyParts = new FeatureData();
-        public FeatureData movePosition = new FeatureData();
+        public MovePositionFeatureData movePosition = new MovePositionFeatureData();
         public FeatureData rotate = new FeatureData();
         public FeatureData advancedControls = new FeatureData();
         public FeatureData privateArmorstand = new FeatureData();
@@ -281,6 +286,21 @@ public class Config {
 
             public boolean useDeactivatedItem = false;
             public boolean clearItemsOnOpen = true;
+        }
+
+        public static class MovePositionFeatureData extends FeatureData {
+
+            private int maxDistance = 100;
+            public transient int maxDistanceSquared = 10000;
+
+            public int getMaxDistance() {
+                return maxDistance;
+            }
+
+            public void setMaxDistance(int maxDistance) {
+                this.maxDistance = maxDistance;
+                this.maxDistanceSquared = maxDistance * maxDistance;
+            }
         }
 
         public static class VehicleFeatureData extends FeatureData {

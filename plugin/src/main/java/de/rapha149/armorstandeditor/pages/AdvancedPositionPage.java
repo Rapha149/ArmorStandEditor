@@ -92,11 +92,14 @@ public class AdvancedPositionPage extends Page {
             Location loc = armorStand.getLocation();
             double value = axis.getBlockValue(loc) + (axis == Axis.Y ? 0 : 0.5);
             axis.setValue(loc, value);
-            armorStand.teleport(loc);
-            playStepSound(player);
-
-            currentLoc[axis.ordinal()] = value;
-            setCurrentPositionItem(gui, armorStand);
+            if (teleportArmorStand(player, armorStand, loc)) {
+                playStepSound(player);
+                currentLoc[axis.ordinal()] = value;
+                setCurrentPositionItem(gui, armorStand);
+            } else {
+                player.sendMessage(getMessage("armorstands.move_position.too_far"));
+                playBassSound(player);
+            }
         })));
 
         for (Axis axis : Axis.values()) {
@@ -120,11 +123,14 @@ public class AdvancedPositionPage extends Page {
                 Location loc = armorStand.getLocation();
                 double value = axis.getValue(loc) + amount * (event.isLeftClick() ? 1 : -1);
                 axis.setValue(loc, value);
-                armorStand.teleport(loc);
-                playStepSound(player);
-
-                currentLoc[axis.ordinal()] = value;
-                setCurrentPositionItem(gui, armorStand);
+                if (teleportArmorStand(player, armorStand, loc)) {
+                    playStepSound(player);
+                    currentLoc[axis.ordinal()] = value;
+                    setCurrentPositionItem(gui, armorStand);
+                } else {
+                    player.sendMessage(getMessage("armorstands.move_position.too_far"));
+                    playBassSound(player);
+                }
             })));
         }
 

@@ -52,7 +52,7 @@ You can set other permissions in the config:
 <summary>Expand ↓</summary>
 
 ```yaml
-# ArmorStandEditor version 1.5.13
+# ArmorStandEditor version 1.5.14
 # Github: https://github.com/Rapha149/ArmorStandEditor
 # Spigot: https://www.spigotmc.org/resources/armorstandeditor.108120/
 
@@ -82,6 +82,11 @@ features:
   replaceEquipment:
     # Whether or not to replace the armor and hand items of the armor stand with the disabled item when this feature is disabled.
     useDeactivatedItem: false
+
+    # Whether or not to clear the armor stand's equipment when the gui is opened. This will prevent duplication bugs that players can cause using mods.
+    # If you're running a small server with friends, you can choose to disable this option if you don't want the equipment to vanish every time you open the gui.
+    # However, if you're running a server with a few more players, it is recommended to leave this option enabled.
+    clearItemsOnOpen: true
     enabled: true
     permission: null
 
@@ -92,6 +97,11 @@ features:
 
   # Moving the armor stand's position.
   movePosition:
+    # The maximum distance the player can move an armor stand away from himself.
+    # This option only affects the movement controlled by the buttons in the gui, not the movement controlled by going somewhere / looking around.
+    # This limit exists to prevent players from unloading armor stands by moving them far away and then duplicating items.
+    # You can set increase it or set it to 0 to allow an infinite distance, but this is not recommended.
+    maxDistance: 100
     enabled: true
     permission: null
 
