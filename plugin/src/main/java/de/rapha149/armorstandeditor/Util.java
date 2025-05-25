@@ -11,6 +11,7 @@ import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -35,6 +36,7 @@ import static de.rapha149.armorstandeditor.Messages.getRawMessage;
 
 public class Util {
 
+    public static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     public static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
     public static final PlainTextComponentSerializer PLAIN_SERIALIZER = PlainTextComponentSerializer.plainText();
     public static final LegacyComponentSerializer EDIT_SERIALIZER = LegacyComponentSerializer.builder().hexColors().character('&').build();

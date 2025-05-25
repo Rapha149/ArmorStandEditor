@@ -1,7 +1,6 @@
 package de.rapha149.armorstandeditor;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -18,9 +17,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class Messages {
+import static de.rapha149.armorstandeditor.Util.MINI_MESSAGE;
 
-    private static final MiniMessage miniMessage = MiniMessage.miniMessage();
+public class Messages {
 
     private static File messageFile;
     private static FileConfiguration messageConfig;
@@ -274,7 +273,7 @@ public class Messages {
                                              "bold|italic|underlined|strikethrough|obfuscated)>";
                         messageConfig.getKeys(true).forEach(key -> {
                             if (messageConfig.isString(key)) {
-                                messageConfig.set(key, miniMessage.serialize(serializer.deserialize(ChatColor.translateAlternateColorCodes('&',
+                                messageConfig.set(key, MINI_MESSAGE.serialize(serializer.deserialize(ChatColor.translateAlternateColorCodes('&',
                                                 messageConfig.getString(key)).replaceAll("&#([0-9a-fA-F]{6})", "§#$1")))
                                         .replaceAll(endTagRegex, ""));
                             }
@@ -337,7 +336,7 @@ public class Messages {
     public record Message(String plain, Component adventure, BaseComponent[] spigot) {
 
         public Message(String message) {
-            this(miniMessage.deserialize("<!italic>" + message.replace("\\n", "\n")
+            this(MINI_MESSAGE.deserialize("<!italic>" + message.replace("\\n", "\n")
                     .replace("%prefix%", messageConfig.getString("prefix"))));
         }
 

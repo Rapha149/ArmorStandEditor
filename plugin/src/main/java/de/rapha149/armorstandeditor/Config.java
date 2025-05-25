@@ -2,6 +2,7 @@ package de.rapha149.armorstandeditor;
 
 import de.rapha149.armorstandeditor.Config.PresetData.PresetBodyPartData;
 import de.rapha149.armorstandeditor.version.BodyPart;
+import net.kyori.adventure.text.Component;
 import org.bukkit.util.EulerAngle;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
@@ -65,6 +66,10 @@ public class Config {
         comments.put("features.vehicle.players", "Whether or not players can be selected as passengers.");
         comments.put("features.rename", "Renaming your armor stand.");
         comments.put("features.giveItem", "Receiving your armor stand as an item.");
+        comments.put("features.giveItem.itemName", "The item name of the received item. Set to null to default to the armor stand's name." +
+                                                   "\nColors can be used with the MiniMessage format.");
+        comments.put("features.giveItem.itemLore", "The item lore of the received item. Set to null to disable." +
+                                                   "\nColors can be used with the MiniMessage format.");
         comments.put("features.copy", "Copying your armor stand settings by combining a modified armor stand item with a normal armor stand item in the crafting table." +
                                       "\nThis behavior is similar to the copying behavior of written books.");
         comments.put("presets", "Here you can define presets which are shown on the Pose page of the Advanced Controls." +
@@ -274,7 +279,7 @@ public class Config {
         public VehicleFeatureData passenger = new VehicleFeatureData();
         public VehicleFeatureData vehicle = new VehicleFeatureData();
         public FeatureData rename = new FeatureData();
-        public FeatureData giveItem = new FeatureData();
+        public GiveItemFeatureData giveItem = new GiveItemFeatureData();
         public FeatureData copy = new FeatureData();
 
         public static class FeatureData {
@@ -312,6 +317,33 @@ public class Config {
         public static class VehicleFeatureData extends FeatureData {
 
             public boolean players = false;
+        }
+
+        public static class GiveItemFeatureData extends FeatureData {
+
+            private String itemName;
+            private String itemLore;
+            public transient Component itemNameComponent;
+            public transient List<Component> itemLoreComponents;
+
+            public String getItemName() {
+                return itemName;
+            }
+
+            public void setItemName(String itemName) {
+                this.itemName = itemName;
+                this.itemNameComponent = itemName != null ? Util.MINI_MESSAGE.deserialize("<!italic>" + itemName) : null;
+            }
+
+            public String getItemLore() {
+                return itemLore;
+            }
+
+            public void setItemLore(String itemLore) {
+                this.itemLore = itemLore;
+                this.itemLoreComponents = itemLore != null ? Arrays.stream(itemLore.split("\n|\\\\n"))
+                        .map(line -> Util.MINI_MESSAGE.deserialize("<!italic>" + line)).toList() : null;
+            }
         }
     }
 

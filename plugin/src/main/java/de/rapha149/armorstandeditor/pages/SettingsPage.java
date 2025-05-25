@@ -100,6 +100,16 @@ public class SettingsPage extends Page {
                 gui.close(player);
                 ItemStack item = wrapper.getArmorstandItem(armorStand, PRIVATE_KEY);
                 Util.makeArmorstandItem(item);
+
+                if (features.giveItem.itemNameComponent != null || features.giveItem.itemLoreComponents != null) {
+                    ItemBuilder builder = ItemBuilder.from(item);
+                    if (features.giveItem.itemNameComponent != null)
+                        builder.name(features.giveItem.itemNameComponent);
+                    if (features.giveItem.itemLoreComponents != null)
+                        builder.lore(features.giveItem.itemLoreComponents);
+                    item = builder.build();
+                }
+
                 if (player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR)
                     armorStand.remove();
                 inv.addItem(item);
