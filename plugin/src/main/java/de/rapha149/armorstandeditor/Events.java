@@ -55,6 +55,7 @@ public class Events implements Listener {
     private VersionWrapper wrapper = ArmorStandEditor.getInstance().wrapper;
 
     private final String INVISIBLE_TAG = "ArmorStandEditor-Invisible";
+    private final String FIRE_TAG = "ArmorStandEditor-Fire";
     private final List<Double> SNAP_IN_DISTANCES = List.of(0.5D, 1.0D, 1.5D, 2D, 3D, 4D, 5D);
 
     public static final Map<Player, ArmorStandMovement> moving = new HashMap<>();
@@ -66,8 +67,12 @@ public class Events implements Listener {
 
     @EventHandler
     public void onSpawn(EntitySpawnEvent event) {
-        if (event.getEntity() instanceof ArmorStand armorStand && armorStand.removeScoreboardTag(INVISIBLE_TAG))
-            Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> armorStand.setInvisible(true));
+        if (event.getEntity() instanceof ArmorStand armorStand) {
+            if (armorStand.removeScoreboardTag(INVISIBLE_TAG))
+                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> armorStand.setInvisible(true));
+            if (armorStand.removeScoreboardTag(FIRE_TAG))
+                Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> armorStand.setVisualFire(true));
+        }
     }
 
     @EventHandler

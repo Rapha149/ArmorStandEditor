@@ -1,6 +1,5 @@
 package de.rapha149.armorstandeditor.version;
 
-import net.kyori.adventure.text.Component;
 import net.minecraft.core.Vector3f;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -21,35 +20,20 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Optional;
 
 public class Wrapper1_20_R3 implements VersionWrapper {
 
     private final EntityArmorStand defaultArmorStand = new EntityArmorStand(((CraftWorld) Bukkit.getWorlds().get(0)).getHandle(), 0, 0, 0);
 
     @Override
-    public String getCustomNameForEdit(ArmorStand armorStand) {
-        EntityArmorStand handle = ((CraftArmorStand) armorStand).getHandle();
-        if (!handle.ae())
-            return null;
-
-        return EDIT_SERIALIZER.serialize(GSON_SERIALIZER.deserialize(ChatSerializer.a(handle.ad())));
+    public Optional<String> getCustomNameJson(ArmorStand armorStand) {
+        return Optional.ofNullable(((CraftArmorStand) armorStand).getHandle().af()).map(ChatSerializer::a);
     }
 
     @Override
-    public Component getCustomNameForDisplay(ArmorStand armorStand) {
-        EntityArmorStand handle = ((CraftArmorStand) armorStand).getHandle();
-        if (!handle.ae())
-            return null;
-
-        return GSON_SERIALIZER.deserialize(ChatSerializer.a(handle.af()));
-    }
-
-    @Override
-    public void setCustomName(ArmorStand armorStand, String customName) {
-        EntityArmorStand handle = ((CraftArmorStand) armorStand).getHandle();
-        handle.b(customName == null ? null : ChatSerializer.a(GSON_SERIALIZER.serialize(EDIT_SERIALIZER.deserialize(customName))));
+    public void setCustomName(ArmorStand armorStand, String customNameJson) {
+        ((CraftArmorStand) armorStand).getHandle().b(customNameJson == null ? null : ChatSerializer.a(customNameJson));
     }
 
     @Override
@@ -103,7 +87,7 @@ public class Wrapper1_20_R3 implements VersionWrapper {
             case Y -> new Vector3f(currentAngle.b(), defaultAngle.c(), currentAngle.d());
             case Z -> new Vector3f(currentAngle.b(), currentAngle.c(), defaultAngle.d());
         };
-        switch(bodyPart) {
+        switch (bodyPart) {
             case HEAD -> handle.a(newAngle);
             case BODY -> handle.b(newAngle);
             case LEFT_ARM -> handle.c(newAngle);
@@ -120,15 +104,14 @@ public class Wrapper1_20_R3 implements VersionWrapper {
         handle.b(entityNBT);
 
         NBTTagList tags = new NBTTagList();
-        tags.add(NBTTagString.a(INVISIBLE_TAG));
+        if (armorStand.isInvisible())
+            tags.add(NBTTagString.a(INVISIBLE_TAG));
         armorStand.getScoreboardTags().forEach(tag -> tags.add(NBTTagString.a(tag)));
 
         NBTTagCompound nbt = new NBTTagCompound();
-        if (handle.ae())
-            nbt.a("CustomName", ChatSerializer.a(handle.af()));
+        getCustomNameJson(armorStand).ifPresent(json -> nbt.a("CustomName", json));
         nbt.a("CustomNameVisible", armorStand.isCustomNameVisible());
-        if (armorStand.isInvisible())
-            nbt.a("Tags", tags);
+        nbt.a("Tags", tags);
         nbt.a("NoGravity", !armorStand.hasGravity());
         nbt.a("Silent", armorStand.isSilent());
         nbt.a("Invulnerable", armorStand.isInvulnerable());

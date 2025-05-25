@@ -1,6 +1,7 @@
 package de.rapha149.armorstandeditor.version;
 
 import net.minecraft.core.Vector3f;
+import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -9,10 +10,9 @@ import net.minecraft.world.entity.decoration.EntityArmorStand;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_19_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_19_R2.entity.CraftArmorStand;
-import org.bukkit.craftbukkit.v1_19_R2.inventory.CraftItemStack;
-import org.bukkit.enchantments.Enchantment;
+import org.bukkit.craftbukkit.v1_21_R4.CraftWorld;
+import org.bukkit.craftbukkit.v1_21_R4.entity.CraftArmorStand;
+import org.bukkit.craftbukkit.v1_21_R4.inventory.CraftItemStack;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -22,30 +22,31 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Optional;
 
-public class Wrapper1_19_R2 implements VersionWrapper {
+public class Wrapper1_21_R4 implements VersionWrapper {
 
     private final EntityArmorStand defaultArmorStand = new EntityArmorStand(((CraftWorld) Bukkit.getWorlds().get(0)).getHandle(), 0, 0, 0);
 
     @Override
     public Optional<String> getCustomNameJson(ArmorStand armorStand) {
-        return Optional.ofNullable(((CraftArmorStand) armorStand).getHandle().ac()).map(ChatSerializer::a);
+        return Optional.ofNullable(((CraftArmorStand) armorStand).getHandle().aj())
+                .map(component -> ChatSerializer.a(component, VanillaRegistries.a()));
     }
 
     @Override
     public void setCustomName(ArmorStand armorStand, String customNameJson) {
-        ((CraftArmorStand) armorStand).getHandle().b(customNameJson == null ? null : ChatSerializer.a(customNameJson));
+        ((CraftArmorStand) armorStand).getHandle().b(customNameJson == null ? null : ChatSerializer.a(customNameJson, VanillaRegistries.a()));
     }
 
     @Override
     public void resetArmorStandBodyPart(ArmorStand armorStand, BodyPart bodyPart) {
         EntityArmorStand handle = ((CraftArmorStand) armorStand).getHandle();
         switch (bodyPart) {
-            case HEAD -> handle.a(defaultArmorStand.cg);
-            case BODY -> handle.b(defaultArmorStand.ch);
-            case LEFT_ARM -> handle.c(defaultArmorStand.ci);
-            case RIGHT_ARM -> handle.d(defaultArmorStand.cj);
-            case LEFT_LEG -> handle.e(defaultArmorStand.ck);
-            case RIGHT_LEG -> handle.f(defaultArmorStand.cl);
+            case HEAD -> handle.a(defaultArmorStand.bU);
+            case BODY -> handle.b(defaultArmorStand.bV);
+            case LEFT_ARM -> handle.c(defaultArmorStand.bW);
+            case RIGHT_ARM -> handle.d(defaultArmorStand.bX);
+            case LEFT_LEG -> handle.e(defaultArmorStand.bY);
+            case RIGHT_LEG -> handle.f(defaultArmorStand.bZ);
         }
     }
 
@@ -55,37 +56,37 @@ public class Wrapper1_19_R2 implements VersionWrapper {
         Vector3f currentAngle, defaultAngle;
         switch (bodyPart) {
             case HEAD:
-                currentAngle = handle.cg;
-                defaultAngle = defaultArmorStand.cg;
+                currentAngle = handle.bU;
+                defaultAngle = defaultArmorStand.bU;
                 break;
             case BODY:
-                currentAngle = handle.ch;
-                defaultAngle = defaultArmorStand.ch;
+                currentAngle = handle.bV;
+                defaultAngle = defaultArmorStand.bV;
                 break;
             case LEFT_ARM:
-                currentAngle = handle.ci;
-                defaultAngle = defaultArmorStand.ci;
+                currentAngle = handle.bW;
+                defaultAngle = defaultArmorStand.bW;
                 break;
             case RIGHT_ARM:
-                currentAngle = handle.cj;
-                defaultAngle = defaultArmorStand.cj;
+                currentAngle = handle.bX;
+                defaultAngle = defaultArmorStand.bX;
                 break;
             case LEFT_LEG:
-                currentAngle = handle.ck;
-                defaultAngle = defaultArmorStand.ck;
+                currentAngle = handle.bY;
+                defaultAngle = defaultArmorStand.bY;
                 break;
             case RIGHT_LEG:
-                currentAngle = handle.cl;
-                defaultAngle = defaultArmorStand.cl;
+                currentAngle = handle.bZ;
+                defaultAngle = defaultArmorStand.bZ;
                 break;
             default:
                 return;
         }
 
         Vector3f newAngle = switch (axis) {
-            case X -> new Vector3f(defaultAngle.b(), currentAngle.c(), currentAngle.d());
-            case Y -> new Vector3f(currentAngle.b(), defaultAngle.c(), currentAngle.d());
-            case Z -> new Vector3f(currentAngle.b(), currentAngle.c(), defaultAngle.d());
+            case X -> new Vector3f(defaultAngle.a(), currentAngle.b(), currentAngle.c());
+            case Y -> new Vector3f(currentAngle.a(), defaultAngle.b(), currentAngle.c());
+            case Z -> new Vector3f(currentAngle.a(), currentAngle.b(), defaultAngle.c());
         };
         switch (bodyPart) {
             case HEAD -> handle.a(newAngle);
@@ -106,10 +107,14 @@ public class Wrapper1_19_R2 implements VersionWrapper {
         NBTTagList tags = new NBTTagList();
         if (armorStand.isInvisible())
             tags.add(NBTTagString.a(INVISIBLE_TAG));
+        if (armorStand.isVisualFire())
+            tags.add(NBTTagString.a(FIRE_TAG));
         armorStand.getScoreboardTags().forEach(tag -> tags.add(NBTTagString.a(tag)));
 
         NBTTagCompound nbt = new NBTTagCompound();
-        getCustomNameJson(armorStand).ifPresent(json -> nbt.a("CustomName", json));
+        nbt.a("id", "minecraft:armor_stand");
+        if (entityNBT.b("CustomName"))
+            nbt.a("CustomName", entityNBT.n("CustomName"));
         nbt.a("CustomNameVisible", armorStand.isCustomNameVisible());
         nbt.a("Tags", tags);
         nbt.a("NoGravity", !armorStand.hasGravity());
@@ -120,11 +125,10 @@ public class Wrapper1_19_R2 implements VersionWrapper {
         nbt.a("Marker", armorStand.isMarker());
         nbt.a("NoBasePlate", !armorStand.hasBasePlate());
         nbt.a("Glowing", armorStand.isGlowing());
-        nbt.a("HasVisualFire", armorStand.isVisualFire());
-        nbt.a("ArmorItems", entityNBT.c("ArmorItems"));
-        nbt.a("HandItems", entityNBT.c("HandItems"));
-        nbt.a("Pose", entityNBT.p("Pose"));
-        nbt.a("DisabledSlots", entityNBT.h("DisabledSlots"));
+        if (entityNBT.b("equipment"))
+            nbt.a("equipment", entityNBT.a("equipment"));
+        nbt.a("Pose", entityNBT.n("Pose"));
+        nbt.a("DisabledSlots", entityNBT.b("DisabledSlots", 0));
 
         PersistentDataContainer pdc = armorStand.getPersistentDataContainer();
         if (pdc.has(privateKey, PersistentDataType.STRING)) {
@@ -134,12 +138,15 @@ public class Wrapper1_19_R2 implements VersionWrapper {
         }
 
         net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(new ItemStack(Material.ARMOR_STAND));
-        NBTTagCompound itemNBT = nmsItem.v();
-        itemNBT.a("EntityTag", nbt);
-        ItemStack item = CraftItemStack.asBukkitCopy(nmsItem);
+        NBTTagCompound itemNBT = nmsItem.f() ? new NBTTagCompound() : (NBTTagCompound) nmsItem.a(VanillaRegistries.a());
+        NBTTagCompound components = itemNBT.n("components");
+        components.a("minecraft:entity_data", nbt);
+        itemNBT.a("components", components);
+
+        ItemStack item = CraftItemStack.asBukkitCopy(net.minecraft.world.item.ItemStack.a(VanillaRegistries.a(), itemNBT).orElseThrow());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(armorStand.getCustomName());
-        meta.addEnchant(Enchantment.ARROW_DAMAGE, 1, true);
+        meta.setEnchantmentGlintOverride(true);
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         item.setItemMeta(meta);
 
@@ -152,14 +159,14 @@ public class Wrapper1_19_R2 implements VersionWrapper {
             return null;
 
         net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(item);
-        NBTTagCompound nbt = nmsItem.u();
+        NBTTagCompound nbt = nmsItem.f() ? new NBTTagCompound() : (NBTTagCompound) nmsItem.a(VanillaRegistries.a());
+        NBTTagCompound components = nbt.n("components");
 
-        if (nbt.e("EntityTag")) {
-            NBTTagCompound entityNBT = nbt.p("EntityTag");
-            entityNBT.r("ArmorItems");
-            entityNBT.r("HandItems");
+        if (components.b("minecraft:entity_data")) {
+            NBTTagCompound entityNBT = components.n("minecraft:entity_data");
+            entityNBT.r("equipment");
         }
 
-        return CraftItemStack.asBukkitCopy(nmsItem);
+        return CraftItemStack.asBukkitCopy(net.minecraft.world.item.ItemStack.a(VanillaRegistries.a(), nbt).orElseThrow());
     }
 }

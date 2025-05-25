@@ -37,7 +37,7 @@
         <dependency>
             <groupId>net.wesjd</groupId>
             <artifactId>anvilgui</artifactId>
-            <version>1.10.4-SNAPSHOT</version>
+            <version>1.10.5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
@@ -119,6 +119,12 @@
         <dependency>
             <groupId>de.rapha149.armorstandeditor</groupId>
             <artifactId>ArmorStandEditor-1_21_R3</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.rapha149.armorstandeditor</groupId>
+            <artifactId>ArmorStandEditor-1_21_R4</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>

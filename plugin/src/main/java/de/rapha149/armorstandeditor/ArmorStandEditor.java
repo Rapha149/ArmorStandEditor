@@ -7,15 +7,9 @@ import de.rapha149.armorstandeditor.Metrics.SimplePie;
 import de.rapha149.armorstandeditor.version.VersionWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +17,16 @@ import java.util.Optional;
 import static de.rapha149.armorstandeditor.Messages.getMessage;
 
 public final class ArmorStandEditor extends JavaPlugin {
+
+    private static final Map<String, String> VERSIONS = Map.of(
+            "1.20.5", "1_20_R4",
+            "1.20.6", "1_20_R4",
+            "1.21.1", "1_21_R1",
+            "1.21.3", "1_21_R2",
+            "1.21.4", "1_21_R3",
+            "1.21.5", "1_21_R4"
+    );
+    private static final String NEWEST_VERSION = "1_21_R4";
 
     private static ArmorStandEditor instance;
 
@@ -32,7 +36,9 @@ public final class ArmorStandEditor extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        String nmsVersion = getNMSVersion();
+        String craftBukkitPackage = Bukkit.getServer().getClass().getPackage().getName();
+        String nmsVersion = craftBukkitPackage.contains(".v") ? craftBukkitPackage.split("\\.")[3].substring(1) :
+                VERSIONS.getOrDefault(Bukkit.getBukkitVersion().split("-")[0], NEWEST_VERSION);
         try {
             wrapper = (VersionWrapper) Class.forName(VersionWrapper.class.getPackage().getName() + ".Wrapper" + nmsVersion).getDeclaredConstructor().newInstance();
         } catch (IllegalAccessException | InstantiationException | NoSuchMethodException |
@@ -78,48 +84,6 @@ public final class ArmorStandEditor extends JavaPlugin {
 
     public static ArmorStandEditor getInstance() {
         return instance;
-    }
-
-    private String getNMSVersion() {
-        String craftBukkitPackage = Bukkit.getServer().getClass().getPackage().getName();
-        if (craftBukkitPackage.contains("v"))
-            return craftBukkitPackage.split("\\.")[3].substring(1);
-
-        // Get NMS Version from the bukkit version
-        String bukkitVersion = Bukkit.getBukkitVersion();
-
-        // Try to get NMS Version from online list (https://github.com/Rapha149/NMSVersions)
-        try (HttpClient client = HttpClient.newHttpClient()) {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://raw.githubusercontent.com/Rapha149/NMSVersions/main/nms-versions.json"))
-                    .build();
-            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-            if (response.statusCode() / 100 != 2)
-                throw new IOException("Failed to get NMS versions list: " + response.statusCode());
-
-            JSONObject json = new JSONObject(response.body());
-            if (json.has(bukkitVersion))
-                return json.getString(bukkitVersion);
-        } catch (IOException | InterruptedException e) {
-            getLogger().warning("Can't access online NMS versions list, falling back to hardcoded NMS versions. These could be outdated.");
-        }
-
-        // separating major and minor versions, example: 1.20.4-R0.1-SNAPSHOT -> major = 20, minor = 4
-        final String[] versionNumbers = bukkitVersion.split("-")[0].split("\\.");
-        int major = Integer.parseInt(versionNumbers[1]);
-        int minor = versionNumbers.length > 2 ? Integer.parseInt(versionNumbers[2]) : 0;
-
-        if (major == 20 && minor >= 5) { // 1.20.5, 1.20.6
-            return "1_20_R4";
-        } else if (major == 21 && minor <= 1) { // 1.21, 1.21.1
-            return "1_21_R1";
-        } else if (major == 21 && (minor == 2 || minor == 3)) { // 1.21.2, 1.21.3
-            return "1_21_R2";
-        } else if (major == 21 && (minor == 4)) { // 1.21.4
-            return "1_21_R3";
-        }
-
-        throw new IllegalStateException("ArmorStandEditor does not support bukkit server version \"" + bukkitVersion + "\"");
     }
 
     private void loadMetrics() {

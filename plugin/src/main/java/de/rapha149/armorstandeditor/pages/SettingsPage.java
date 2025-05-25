@@ -12,6 +12,8 @@ import dev.triumphteam.gui.guis.Gui;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.wesjd.anvilgui.AnvilGUI;
 import net.wesjd.anvilgui.AnvilGUI.Builder;
 import net.wesjd.anvilgui.AnvilGUI.ResponseAction;
@@ -27,12 +29,16 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
 import static de.rapha149.armorstandeditor.Util.*;
 
 public class SettingsPage extends Page {
+
+    private final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
+    private final LegacyComponentSerializer EDIT_SERIALIZER = LegacyComponentSerializer.builder().hexColors().character('&').build();
 
     private final int PAGE_NUMBER = 2;
 
@@ -297,9 +303,7 @@ public class SettingsPage extends Page {
     }
 
     private void setRenameItem(Player player, ArmorStand armorStand, Gui gui) {
-        Component customNameDisplay = wrapper.getCustomNameForDisplay(armorStand);
-        if (customNameDisplay == null)
-            customNameDisplay = Component.text("§c---");
+        Component customNameDisplay = wrapper.getCustomNameJson(armorStand).map(GSON_SERIALIZER::deserialize).orElse(Component.text("§c---"));
         List<Component> lore = new ArrayList<>();
         for (String line : getMessage("armorstands.rename.lore").split("\n")) {
             if (!line.contains("%name%"))
@@ -318,8 +322,8 @@ public class SettingsPage extends Page {
 
         gui.updateItem(5, 7, checkDeactivated(ItemBuilder.from(Material.NAME_TAG).name(Component.text(getMessage("armorstands.rename.name"))).lore(lore).asGuiItem(event -> {
             if (event.isLeftClick()) {
-                String customNameEdit = wrapper.getCustomNameForEdit(armorStand);
-                String name = customNameEdit != null && !customNameEdit.isEmpty() ? customNameEdit : "Name...";
+                String name = wrapper.getCustomNameJson(armorStand).map(GSON_SERIALIZER::deserialize).map(EDIT_SERIALIZER::serialize)
+                        .filter(Predicate.not(String::isEmpty)).orElse("Name...");
                 long time = System.currentTimeMillis();
                 Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> anvilInvs.put(time, new Builder().plugin(ArmorStandEditor.getInstance())
                         .title(getMessage("armorstands.rename.name"))
@@ -333,7 +337,7 @@ public class SettingsPage extends Page {
                             if (slot != AnvilGUI.Slot.OUTPUT)
                                 return Collections.emptyList();
 
-                            wrapper.setCustomName(armorStand, state.getText());
+                            wrapper.setCustomName(armorStand, GSON_SERIALIZER.serialize(EDIT_SERIALIZER.deserialize(state.getText())));
                             armorStand.setCustomNameVisible(true);
                             anvilInvs.remove(time);
                             Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, PAGE_NUMBER, false));
