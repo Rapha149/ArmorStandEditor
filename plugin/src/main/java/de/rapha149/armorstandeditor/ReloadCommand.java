@@ -21,13 +21,13 @@ public class ReloadCommand implements CommandExecutor {
             try {
                 Messages.loadMessages();
                 Config.load();
-                sender.sendMessage(getMessage("reload"));
+                sender.spigot().sendMessage(getMessage("reload").spigot());
             } catch (IOException e) {
                 e.printStackTrace();
-                sender.sendMessage(getMessage("error"));
+                sender.spigot().sendMessage(getMessage("error").spigot());
             }
         } else
-            sender.sendMessage(getMessage("no_permission"));
+            sender.spigot().sendMessage(getMessage("no_permission").spigot());
         return false;
     }
 }

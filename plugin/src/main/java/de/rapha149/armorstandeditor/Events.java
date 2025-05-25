@@ -6,6 +6,7 @@ import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandBodyPart
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandPositionMovement;
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandPositionMovement.ArmorStandPositionSnapInMovement;
 import de.rapha149.armorstandeditor.Events.ArmorStandMovement.ArmorStandRotationMovement;
+import de.rapha149.armorstandeditor.Messages.Message;
 import de.rapha149.armorstandeditor.Util.ArmorStandStatus;
 import de.rapha149.armorstandeditor.version.Axis;
 import de.rapha149.armorstandeditor.version.BodyPart;
@@ -48,6 +49,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
+import static de.rapha149.armorstandeditor.Messages.getRawMessage;
 import static de.rapha149.armorstandeditor.Util.EQUIPMENT_SLOTS;
 
 public class Events implements Listener {
@@ -181,7 +183,7 @@ public class Events implements Listener {
     public static void startMovePosition(Player player, ArmorStand armorStand, boolean snapIn) {
         UUID uuid = armorStand.getUniqueId();
         if (isPlayerDoingSomethingOutsideOfInv(player) || moving.values().stream().anyMatch(movement -> movement.armorStand.getUniqueId().equals(uuid))) {
-            player.sendMessage(getMessage("not_possible_now"));
+            player.spigot().sendMessage(getMessage("not_possible_now").spigot());
             return;
         }
 
@@ -292,7 +294,7 @@ public class Events implements Listener {
     public static void startSnapInMovePosition(Player player, ArmorStand armorStand, Axis axis) {
         UUID uuid = armorStand.getUniqueId();
         if (isPlayerDoingSomethingOutsideOfInv(player) || moving.values().stream().anyMatch(movement -> movement.armorStand.getUniqueId().equals(uuid))) {
-            player.sendMessage(getMessage("not_possible_now"));
+            player.spigot().sendMessage(getMessage("not_possible_now").spigot());
             return;
         }
 
@@ -361,7 +363,7 @@ public class Events implements Listener {
     public static void startMoveBodyPart(Player player, ArmorStand armorStand, BodyPart bodyPart) {
         UUID uuid = armorStand.getUniqueId();
         if (isPlayerDoingSomethingOutsideOfInv(player) || moving.values().stream().anyMatch(movement -> movement.armorStand.getUniqueId().equals(uuid))) {
-            player.sendMessage(getMessage("not_possible_now"));
+            player.spigot().sendMessage(getMessage("not_possible_now").spigot());
             return;
         }
 
@@ -403,7 +405,7 @@ public class Events implements Listener {
     public static void startRotationMovement(Player player, ArmorStand armorStand) {
         UUID uuid = armorStand.getUniqueId();
         if (isPlayerDoingSomethingOutsideOfInv(player) || moving.values().stream().anyMatch(movement -> movement.armorStand.getUniqueId().equals(uuid))) {
-            player.sendMessage(getMessage("not_possible_now"));
+            player.spigot().sendMessage(getMessage("not_possible_now").spigot());
             return;
         }
 
@@ -416,34 +418,35 @@ public class Events implements Listener {
         // titles
         moving.forEach((player, movement) -> {
             if (movement instanceof ArmorStandPositionMovement) {
-                String message;
+                Message message;
+                String alignedColor = getRawMessage("armorstands.move_position.title.color_aligned_" + (player.isSneaking() ? "active" : "inactive"));
                 if (movement instanceof ArmorStandPositionSnapInMovement snapInMovement) {
-                    message = getMessage("armorstands.move_position.title.snapin")
-                            .replace("%distance%", String.valueOf(snapInMovement.distance))
-                            .replace("%aligned_color%", getMessage("armorstands.move_position.title.color_aligned_" +
-                                                                   (player.isSneaking() ? "active" : "inactive")));
+                    message = getMessage("armorstands.move_position.title.snapin", Map.of(
+                            "%distance%", String.valueOf(snapInMovement.distance),
+                            "%aligned_color%", alignedColor
+                    ));
                 } else {
-                    message = getMessage("armorstands.move_position.title.normal").replace("%aligned_color%",
-                            getMessage("armorstands.move_position.title.color_aligned_" + (player.isSneaking() ? "active" : "inactive")));
+                    message = getMessage("armorstands.move_position.title.normal", Map.of("%aligned_color%", alignedColor));
                 }
 
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, message.spigot());
             } else if (movement instanceof ArmorStandBodyPartMovement bodyPartMovement) {
                 BodyPart bodyPart = bodyPartMovement.bodyPart;
-                String activated = getMessage("armorstands.move_body_parts.title.color_activated"),
-                        deactivated = getMessage("armorstands.move_body_parts.title.color_deactivated");
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(getMessage("armorstands.move_body_parts.title.text")
-                        .replace("%normal%", bodyPart.normalYawDir.getString(bodyPart.normalPitchDir))
-                        .replace("%sneak%", bodyPart.sneakYawDir.getString(bodyPart.sneakPitchDir))
-                        .replace("%color_normal%", !player.isSneaking() ? activated : deactivated)
-                        .replace("%color_sneak%", player.isSneaking() ? activated : deactivated)));
+                String activated = getRawMessage("armorstands.move_body_parts.title.color_activated"),
+                        deactivated = getRawMessage("armorstands.move_body_parts.title.color_deactivated");
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, getMessage("armorstands.move_body_parts.title.text", Map.of(
+                        "%normal%", bodyPart.normalYawDir.getString(bodyPart.normalPitchDir),
+                        "%sneak%", bodyPart.sneakYawDir.getString(bodyPart.sneakPitchDir),
+                        "%color_normal%", !player.isSneaking() ? activated : deactivated,
+                        "%color_sneak%", player.isSneaking() ? activated : deactivated
+                )).spigot());
             } else if (movement instanceof ArmorStandRotationMovement) {
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(getMessage("armorstands.rotate.title")));
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, getMessage("armorstands.rotate.title").spigot());
             }
         });
 
         vehicleSelection.forEach((player, entry) -> player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                new TextComponent(getMessage("armorstands." + (entry.getValue() ? "passenger" : "vehicle") + ".choose.title"))));
+                getMessage("armorstands." + (entry.getValue() ? "passenger" : "vehicle") + ".choose.title").spigot()));
 
         // remove when player is far away
         moving.entrySet().removeIf(entry -> {
@@ -609,12 +612,12 @@ public class Events implements Listener {
             String key = "armorstands." + (asPassenger ? "passenger" : "vehicle") + ".choose.";
             FeaturesData features = Config.get().features;
             if (!(asPassenger ? features.passenger : features.vehicle).players && entity instanceof Player) {
-                player.sendMessage(getMessage(key + ".no_players"));
+                player.spigot().sendMessage(getMessage(key + ".no_players").spigot());
                 Util.playBassSound(player);
                 return;
             }
             if (entity.getUniqueId().equals(armorStand.getUniqueId())) {
-                player.sendMessage(getMessage(key + ".not_itself"));
+                player.spigot().sendMessage(getMessage(key + ".not_itself").spigot());
                 Util.playBassSound(player);
                 return;
             }

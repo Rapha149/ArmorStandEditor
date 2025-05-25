@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
+import static de.rapha149.armorstandeditor.Messages.getRawMessage;
 import static de.rapha149.armorstandeditor.Util.*;
 
 public class AdvancedRotationPage extends Page {
@@ -46,8 +47,8 @@ public class AdvancedRotationPage extends Page {
 
     @Override
     public GuiResult getGui(Player player, ArmorStand armorStand, boolean adminBypass) {
-        Gui gui = Gui.gui().title(Component.text(getMessage("armorstands.advanced_controls.title")
-                .replace("%menu%", getMessage(KEY + "name")))).rows(6).disableAllInteractions().create();
+        Gui gui = Gui.gui().title(getMessage("armorstands.advanced_controls.title",
+                Map.of("%menu%", getRawMessage(KEY + "name"))).adventure()).rows(6).disableAllInteractions().create();
         ArmorStandStatus status = new ArmorStandStatus(player, armorStand, gui);
 
         gui.setItem(gui.getRows(), 1, applyNameAndLore(ItemBuilder.from(Material.ARROW), "armorstands.advanced_controls.leave").asGuiItem(event -> {

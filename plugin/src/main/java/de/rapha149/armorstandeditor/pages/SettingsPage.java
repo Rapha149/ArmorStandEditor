@@ -5,15 +5,13 @@ import de.rapha149.armorstandeditor.Config;
 import de.rapha149.armorstandeditor.Config.FeaturesData;
 import de.rapha149.armorstandeditor.Config.FeaturesData.FeatureData;
 import de.rapha149.armorstandeditor.Events;
+import de.rapha149.armorstandeditor.Messages.Message;
 import de.rapha149.armorstandeditor.Util;
-import de.rapha149.armorstandeditor.Util.ArmorStandStatus;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.wesjd.anvilgui.AnvilGUI;
 import net.wesjd.anvilgui.AnvilGUI.Builder;
 import net.wesjd.anvilgui.AnvilGUI.ResponseAction;
@@ -33,19 +31,17 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
+import static de.rapha149.armorstandeditor.Messages.getRawMessage;
 import static de.rapha149.armorstandeditor.Util.*;
 
 public class SettingsPage extends Page {
-
-    private final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
-    private final LegacyComponentSerializer EDIT_SERIALIZER = LegacyComponentSerializer.builder().hexColors().character('&').build();
 
     private final int PAGE_NUMBER = 2;
 
     @Override
     public GuiResult getGui(Player player, ArmorStand armorStand, boolean adminBypass) {
         FeaturesData features = Config.get().features;
-        Gui gui = Gui.gui().title(Component.text(getMessage("armorstands.title." + (adminBypass ? "admin_bypass" : "normal"))))
+        Gui gui = Gui.gui().title(getMessage("armorstands.title." + (adminBypass ? "admin_bypass" : "normal")).adventure())
                 .rows(6).disableAllInteractions().create();
         ArmorStandStatus status = new ArmorStandStatus(player, armorStand, gui);
 
@@ -119,7 +115,7 @@ public class SettingsPage extends Page {
                         Util.runOneTimeItemClickAction(status, () -> {
                             gui.close(player);
                             if (Events.isPlayerDoingSomethingOutsideOfInv(player)) {
-                                player.sendMessage(getMessage("not_possible_now"));
+                                player.spigot().sendMessage(getMessage("not_possible_now").spigot());
                                 return;
                             }
 
@@ -141,7 +137,7 @@ public class SettingsPage extends Page {
                         Util.runOneTimeItemClickAction(status, () -> {
                             gui.close(player);
                             if (Events.isPlayerDoingSomethingOutsideOfInv(player)) {
-                                player.sendMessage(getMessage("not_possible_now"));
+                                player.spigot().sendMessage(getMessage("not_possible_now").spigot());
                                 return;
                             }
 
@@ -305,14 +301,14 @@ public class SettingsPage extends Page {
     private void setRenameItem(Player player, ArmorStand armorStand, Gui gui) {
         Component customNameDisplay = wrapper.getCustomNameJson(armorStand).map(GSON_SERIALIZER::deserialize).orElse(Component.text("§c---"));
         List<Component> lore = new ArrayList<>();
-        for (String line : getMessage("armorstands.rename.lore").split("\n")) {
+        for (String line : getRawMessage("armorstands.rename.lore").split("\n")) {
             if (!line.contains("%name%"))
-                lore.add(Component.text(line));
+                lore.add(new Message(line).adventure());
             else {
                 String[] split = line.split("%name%");
                 net.kyori.adventure.text.TextComponent.Builder component = Component.text().color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false);
                 for (int i = 0; i < split.length; i++) {
-                    component.append(Component.text(split[i]));
+                    component.append(new Message(split[i]).adventure());
                     if (line.endsWith("%name%") || i != split.length - 1)
                         component.append(customNameDisplay);
                 }
@@ -320,13 +316,13 @@ public class SettingsPage extends Page {
             }
         }
 
-        gui.updateItem(5, 7, checkDeactivated(ItemBuilder.from(Material.NAME_TAG).name(Component.text(getMessage("armorstands.rename.name"))).lore(lore).asGuiItem(event -> {
+        gui.updateItem(5, 7, checkDeactivated(ItemBuilder.from(Material.NAME_TAG).name(getMessage("armorstands.rename.name").adventure()).lore(lore).asGuiItem(event -> {
             if (event.isLeftClick()) {
                 String name = wrapper.getCustomNameJson(armorStand).map(GSON_SERIALIZER::deserialize).map(EDIT_SERIALIZER::serialize)
                         .filter(Predicate.not(String::isEmpty)).orElse("Name...");
                 long time = System.currentTimeMillis();
                 Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> anvilInvs.put(time, new Builder().plugin(ArmorStandEditor.getInstance())
-                        .title(getMessage("armorstands.rename.name"))
+                        .title(getMessage("armorstands.rename.name").plain())
                         .text(name.substring(0, Math.min(50, name.length())))
                         .onClose(p -> {
                             if (!disabling) {

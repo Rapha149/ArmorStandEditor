@@ -3,6 +3,7 @@ package de.rapha149.armorstandeditor;
 import de.rapha149.armorstandeditor.Config.FeaturesData;
 import de.rapha149.armorstandeditor.Config.FeaturesData.FeatureData;
 import de.rapha149.armorstandeditor.Config.PermissionsData;
+import de.rapha149.armorstandeditor.Messages.Message;
 import de.rapha149.armorstandeditor.pages.*;
 import de.rapha149.armorstandeditor.pages.Page.GuiResult;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
@@ -10,7 +11,9 @@ import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.*;
 import org.bukkit.entity.ArmorStand;
@@ -25,14 +28,16 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
+import static de.rapha149.armorstandeditor.Messages.getRawMessage;
 
 public class Util {
 
-    private static final LegacyComponentSerializer SERIALIZER = LegacyComponentSerializer.builder().hexColors().character('&').build();
+    public static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
+    public static final PlainTextComponentSerializer PLAIN_SERIALIZER = PlainTextComponentSerializer.plainText();
+    public static final LegacyComponentSerializer EDIT_SERIALIZER = LegacyComponentSerializer.builder().hexColors().character('&').build();
 
     public static final NamespacedKey PRIVATE_KEY = NamespacedKey.fromString("private", ArmorStandEditor.getInstance());
     public static final NamespacedKey ITEM_KEY = NamespacedKey.fromString("item", ArmorStandEditor.getInstance());
@@ -86,7 +91,7 @@ public class Util {
         PermissionsData permissions = Config.get().permissions;
         if (permissions.general != null && !player.hasPermission(permissions.general)) {
             player.closeInventory();
-            player.sendMessage(getMessage("no_permission"));
+            player.spigot().sendMessage(getMessage("no_permission").spigot());
             playBassSound(player);
             return;
         }
@@ -95,7 +100,7 @@ public class Util {
         String privateValue = armorStand.getPersistentDataContainer().get(PRIVATE_KEY, PersistentDataType.STRING);
         if (privateValue != null && !privateValue.isEmpty() && !privateValue.equals(player.getUniqueId().toString())) {
             if (permissions.ignorePrivate != null && !player.hasPermission(permissions.ignorePrivate)) {
-                player.sendMessage(getMessage("armorstands.no_permission"));
+                player.spigot().sendMessage(getMessage("armorstands.no_permission").spigot());
                 return;
             }
             adminBypass = true;
@@ -103,7 +108,7 @@ public class Util {
 
         if (isArmorStandUsed(player, armorStand)) {
             player.closeInventory();
-            player.sendMessage(getMessage("armorstands.already_open"));
+            player.spigot().sendMessage(getMessage("armorstands.already_open").spigot());
             playBassSound(player);
             return;
         }
@@ -139,7 +144,7 @@ public class Util {
         PermissionsData permissions = Config.get().permissions;
         if (permissions.general != null && !player.hasPermission(permissions.general)) {
             player.closeInventory();
-            player.sendMessage(getMessage("no_permission"));
+            player.spigot().sendMessage(getMessage("no_permission").spigot());
             playBassSound(player);
             return;
         }
@@ -148,7 +153,7 @@ public class Util {
         PersistentDataContainer pdc = armorStand.getPersistentDataContainer();
         if (pdc.has(PRIVATE_KEY, PersistentDataType.STRING) && !pdc.get(PRIVATE_KEY, PersistentDataType.STRING).equals(player.getUniqueId().toString())) {
             if (permissions.ignorePrivate != null && !player.hasPermission(permissions.ignorePrivate)) {
-                player.sendMessage(getMessage("armorstands.no_permission"));
+                player.spigot().sendMessage(getMessage("armorstands.no_permission").spigot());
                 return;
             }
             adminBypass = true;
@@ -156,7 +161,7 @@ public class Util {
 
         if (isArmorStandUsed(player, armorStand)) {
             player.closeInventory();
-            player.sendMessage(getMessage("armorstands.already_open"));
+            player.spigot().sendMessage(getMessage("armorstands.already_open").spigot());
             playBassSound(player);
             return;
         }
@@ -180,15 +185,19 @@ public class Util {
         if (!advancedControls) {
             int maxPages = advancedControls ? 3 : 2;
             if (page > 1) {
-                gui.setItem(gui.getRows(), 1, ItemBuilder.from(Material.SPECTRAL_ARROW).name(Component.text(getMessage("armorstands.page.back")
-                        .replace("%current%", String.valueOf(page)).replace("%max%", String.valueOf(maxPages)))).asGuiItem(event -> {
+                gui.setItem(gui.getRows(), 1, ItemBuilder.from(Material.SPECTRAL_ARROW).name(getMessage("armorstands.page.back", Map.of(
+                        "%current%", String.valueOf(page),
+                        "%max%", String.valueOf(maxPages)
+                )).adventure()).asGuiItem(event -> {
                     Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, page - 1, advancedControls));
                     playSound(player, Sound.ITEM_BOOK_PAGE_TURN);
                 }));
             }
             if (page < maxPages) {
-                gui.setItem(gui.getRows(), 9, ItemBuilder.from(Material.SPECTRAL_ARROW).name(Component.text(getMessage("armorstands.page.forward")
-                        .replace("%current%", String.valueOf(page)).replace("%max%", String.valueOf(maxPages)))).asGuiItem(event -> {
+                gui.setItem(gui.getRows(), 9, ItemBuilder.from(Material.SPECTRAL_ARROW).name(getMessage("armorstands.page.forward", Map.of(
+                        "%current%", String.valueOf(page),
+                        "%max%", String.valueOf(maxPages)
+                )).adventure()).asGuiItem(event -> {
                     Bukkit.getScheduler().runTask(ArmorStandEditor.getInstance(), () -> openGUI(player, armorStand, page + 1, advancedControls));
                     playSound(player, Sound.ITEM_BOOK_PAGE_TURN);
                 }));
@@ -200,7 +209,7 @@ public class Util {
                 int i = index.getAndIncrement();
                 boolean isCurrent = i == page;
                 gui.setItem(gui.getRows(), i + 3, checkDeactivated(applyNameAndLore(ItemBuilder.from(mat), "armorstands.advanced_controls.page_item",
-                        Map.of("%menu%", getMessage("armorstands.advanced_controls." + key + ".name"))).glow(isCurrent).asGuiItem(event -> {
+                        Map.of("%menu%", getRawMessage("armorstands.advanced_controls." + key + ".name"))).glow(isCurrent).asGuiItem(event -> {
                     if (isCurrent) {
                         playBassSound(player);
                         return;
@@ -222,8 +231,8 @@ public class Util {
         return applyNameAndLore(builder, key + ".name", key + ".lore");
     }
 
-    public static ItemBuilder applyNameAndLore(ItemBuilder builder, String key, Map<String, String> relacements) {
-        return applyNameAndLore(builder, key + ".name", key + ".lore", relacements);
+    public static ItemBuilder applyNameAndLore(ItemBuilder builder, String key, Map<String, String> replacements) {
+        return applyNameAndLore(builder, key + ".name", key + ".lore", replacements);
     }
 
     public static ItemBuilder applyNameAndLore(ItemBuilder builder, String key, boolean status) {
@@ -231,19 +240,20 @@ public class Util {
     }
 
     public static ItemBuilder applyNameAndLore(ItemBuilder builder, String name, String lore) {
-        return applyNameAndLoreWithoutKeys(builder, getMessage(name), getMessage(lore));
-    }
-
-    public static ItemBuilder applyNameAndLore(ItemBuilder builder, String name, String lore, Map<String, String> replacements) {
-        return applyNameAndLoreWithoutKeys(builder, getMessage(name), getMessage(lore), replacements);
+        return applyNameAndLore(builder, name, lore, Collections.emptyMap());
     }
 
     public static ItemBuilder applyNameAndLore(ItemBuilder builder, String name, String lore, boolean status) {
-        return applyNameAndLoreWithoutKeys(builder, getMessage(name), getMessage(lore), status);
+        return applyNameAndLore(builder, name, lore, Map.of("%status%", getRawMessage("armorstands.status." + (status ? "on" : "off"))));
     }
 
-    public static ItemBuilder applyNameAndLoreWithoutKeys(ItemBuilder builder, String name, String lore, boolean status) {
-        return applyNameAndLoreWithoutKeys(builder, name, lore, Map.of("%status%", getMessage("armorstands.status." + (status ? "on" : "off"))));
+    public static ItemBuilder applyNameAndLore(ItemBuilder builder, String name, String lore, Map<String, String> replacements) {
+        builder.name(getMessage(name, replacements).adventure());
+        if (!lore.isEmpty()) {
+            builder.lore(Arrays.stream(getRawMessage(lore).split("\n|\\\\n")).map(line ->
+                    new Message(line, replacements).adventure().decoration(TextDecoration.ITALIC, false)).toList());
+        }
+        return builder;
     }
 
     public static ItemBuilder applyNameAndLoreWithoutKeys(ItemBuilder builder, String name, String lore) {
@@ -251,17 +261,10 @@ public class Util {
     }
 
     public static ItemBuilder applyNameAndLoreWithoutKeys(ItemBuilder builder, String name, String lore, Map<String, String> replacements) {
-        AtomicReference<String> nameRef = new AtomicReference<>(name);
-        AtomicReference<String> loreRef = new AtomicReference<>(lore);
-        replacements.forEach((key, value) -> {
-            nameRef.set(nameRef.get().replace(key, value));
-            loreRef.set(loreRef.get().replace(key, value));
-        });
-
-        builder.name(SERIALIZER.deserialize(nameRef.get()).decoration(TextDecoration.ITALIC, false));
+        builder.name(new Message(name, replacements).adventure());
         if (!lore.isEmpty()) {
-            builder.lore(Arrays.stream(loreRef.get().split("\n")).map(line -> SERIALIZER.deserialize(line)
-                    .decoration(TextDecoration.ITALIC, false)).collect(Collectors.toList()));
+            builder.lore(Arrays.stream(lore.split("\n|\\\\n")).map(line ->
+                    new Message(line, replacements).adventure().decoration(TextDecoration.ITALIC, false)).toList());
         }
         return builder;
     }
@@ -304,21 +307,21 @@ public class Util {
 
     public static GuiItem replaceWithDeactivatedItem(GuiItem item, Player player, int status, boolean forceOriginalMaterial) {
         ItemStack itemStack = item.getItemStack();
-        Optional<String> name = itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName() ? Optional.of(itemStack.getItemMeta().getDisplayName()) : Optional.empty();
+        Optional<Component> name = itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName() ?
+                Optional.of(Component.text(itemStack.getItemMeta().getDisplayName())) : Optional.empty();
         return replaceWithDeactivatedItem(itemStack.getType(), name, player, status, forceOriginalMaterial);
     }
 
-    @SuppressWarnings("deprecation")
-    public static GuiItem replaceWithDeactivatedItem(Material original, Optional<String> name, Player player, int status, boolean forceOriginalMaterial) {
+    public static GuiItem replaceWithDeactivatedItem(Material original, Optional<Component> name, Player player, int status, boolean forceOriginalMaterial) {
         Material mat = forceOriginalMaterial ? original : getDeactivatedMaterial(original);
 
         ItemBuilder builder = ItemBuilder.from(mat);
         if (mat == Material.AIR)
             return builder.asGuiItem();
 
-        name.ifPresent(builder::setName);
-        builder.lore(Arrays.stream(getMessage("armorstands.features." + (status == 2 ? "no_permission" : "deactivated")).split("\n"))
-                .map(line -> (Component) Component.text(line)).collect(Collectors.toList()));
+        name.ifPresent(builder::name);
+        builder.lore(Arrays.stream(getRawMessage("armorstands.features." + (status == 2 ? "no_permission" : "deactivated")).split("\n|\\\\n"))
+                .map(line -> new Message(line).adventure()).collect(Collectors.toList()));
 
         return builder.setNbt("deactivated", true).asGuiItem(event -> Util.playBassSound(player));
     }
@@ -407,7 +410,7 @@ public class Util {
 
                 if (!messageSent.get()) {
                     messageSent.set(true);
-                    player.sendMessage(getMessage("armorstands.equipment.invalid"));
+                    player.spigot().sendMessage(getMessage("armorstands.equipment.invalid").spigot());
                     playBassSound(player);
                 }
 

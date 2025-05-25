@@ -31,6 +31,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static de.rapha149.armorstandeditor.Messages.getMessage;
+import static de.rapha149.armorstandeditor.Messages.getRawMessage;
 import static de.rapha149.armorstandeditor.Util.*;
 
 public class ArmorPage extends Page {
@@ -38,7 +39,7 @@ public class ArmorPage extends Page {
     @Override
     public GuiResult getGui(Player player, ArmorStand armorStand, boolean adminBypass) {
         FeaturesData features = Config.get().features;
-        Gui gui = Gui.gui().title(Component.text(getMessage("armorstands.title." + (adminBypass ? "admin_bypass" : "normal")))).rows(6).create();
+        Gui gui = Gui.gui().title(getMessage("armorstands.title." + (adminBypass ? "admin_bypass" : "normal")).adventure()).rows(6).create();
         ArmorStandStatus status = new ArmorStandStatus(player, armorStand, gui);
 
         setPrivateItem(player, gui, armorStand, adminBypass);
@@ -60,7 +61,8 @@ public class ArmorPage extends Page {
             for (int i = 0; i < EQUIPMENT_SLOTS.size(); i++) {
                 gui.setItem(EQUIPMENT_SLOTS.get(i), !features.replaceEquipment.useDeactivatedItem ?
                         ItemBuilder.from(equipmentItems[i]).asGuiItem(event -> playBassSound(player)) :
-                        replaceWithDeactivatedItem(equipmentItems[i].getType(), Optional.of(getMessage("armorstands.equipment.name")), player, equipmentStatus, false));
+                        replaceWithDeactivatedItem(equipmentItems[i].getType(), Optional.of(getMessage("armorstands.equipment.name").adventure()),
+                                player, equipmentStatus, false));
             }
 
             gui.disableAllInteractions();
@@ -175,13 +177,13 @@ public class ArmorPage extends Page {
             } else if (teleportArmorStand(player, armorStand, armorStand.getLocation().add(event.isLeftClick() ? 0.05 : -0.05, 0, 0))) {
                 playStepSound(player);
             } else {
-                player.sendMessage(getMessage("armorstands.move_position.too_far"));
+                player.spigot().sendMessage(getMessage("armorstands.move_position.too_far").spigot());
                 playBassSound(player);
             }
         }), features.movePosition, player));
         gui.setItem(5, 7, checkDeactivated(applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.LIME_DYE),
-                getMessage("armorstands.move_position.y.name") + (armorStand.hasGravity() ? getMessage("armorstands.move_position.y.gravity_warning") : ""),
-                getMessage("armorstands.move_position.y.lore")).asGuiItem(event -> {
+                getRawMessage("armorstands.move_position.y.name") + (armorStand.hasGravity() ? getRawMessage("armorstands.move_position.y.gravity_warning") : ""),
+                getRawMessage("armorstands.move_position.y.lore")).asGuiItem(event -> {
             if (event.getClick() == ClickType.DROP) {
                 Util.runOneTimeItemClickAction(status, () -> {
                     gui.close(player);
@@ -190,7 +192,7 @@ public class ArmorPage extends Page {
             } else if (teleportArmorStand(player, armorStand, armorStand.getLocation().add(0, event.isLeftClick() ? 0.05 : -0.05, 0))) {
                 playStepSound(player);
             } else {
-                player.sendMessage(getMessage("armorstands.move_position.too_far"));
+                player.spigot().sendMessage(getMessage("armorstands.move_position.too_far").spigot());
                 playBassSound(player);
             }
         }), features.movePosition, player));
@@ -203,7 +205,7 @@ public class ArmorPage extends Page {
             } else if (teleportArmorStand(player, armorStand, armorStand.getLocation().add(0, 0, event.isLeftClick() ? 0.05 : -0.05))) {
                 playStepSound(player);
             } else {
-                player.sendMessage(getMessage("armorstands.move_position.too_far"));
+                player.spigot().sendMessage(getMessage("armorstands.move_position.too_far").spigot());
                 playBassSound(player);
             }
         }), features.movePosition, player));
@@ -301,9 +303,11 @@ public class ArmorPage extends Page {
         } else
             name = null;
 
-        gui.updateItem(1, 1, checkDeactivated(applyNameAndLoreWithoutKeys(ItemBuilder.from(Material.SHULKER_SHELL), getMessage("armorstands.private.name"),
-                getMessage("armorstands.private.lore." + (adminBypass ? "admin_bypass" : "normal")).replace("%player%", locked ?
-                        getMessage("armorstands.private.player").replace("%player%", name) : ""), locked).glow(locked).asGuiItem(event -> {
+        gui.updateItem(1, 1, checkDeactivated(applyNameAndLore(ItemBuilder.from(Material.SHULKER_SHELL), "armorstands.private.name",
+                "armorstands.private.lore." + (adminBypass ? "admin_bypass" : "normal"), Map.of(
+                        "%player%", locked ? getRawMessage("armorstands.private.player").replace("%player%", name) : "",
+                        "%status%", getRawMessage("armorstands.status." + (locked ? "on" : "off"))
+                )).glow(locked).asGuiItem(event -> {
             playSpyglassSound(player);
             pdc.set(PRIVATE_KEY, PersistentDataType.STRING, locked ? "" : player.getUniqueId().toString());
             setPrivateItem(player, gui, armorStand, adminBypass);
