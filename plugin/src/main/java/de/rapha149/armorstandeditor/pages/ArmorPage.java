@@ -282,7 +282,8 @@ public class ArmorPage extends Page {
         PersistentDataContainer pdc = armorStand.getPersistentDataContainer();
         UUID uuid;
         try {
-            uuid = pdc.has(PRIVATE_KEY, PersistentDataType.STRING) ? UUID.fromString(pdc.get(PRIVATE_KEY, PersistentDataType.STRING)) : null;
+            String value = pdc.get(PRIVATE_KEY, PersistentDataType.STRING);
+            uuid = value != null && !value.isEmpty() ? UUID.fromString(value) : null;
         } catch (IllegalArgumentException e) {
             uuid = null;
         }
@@ -304,11 +305,7 @@ public class ArmorPage extends Page {
                 getMessage("armorstands.private.lore." + (adminBypass ? "admin_bypass" : "normal")).replace("%player%", locked ?
                         getMessage("armorstands.private.player").replace("%player%", name) : ""), locked).glow(locked).asGuiItem(event -> {
             playSpyglassSound(player);
-            if (locked)
-                pdc.remove(PRIVATE_KEY);
-            else
-                pdc.set(PRIVATE_KEY, PersistentDataType.STRING, player.getUniqueId().toString());
-
+            pdc.set(PRIVATE_KEY, PersistentDataType.STRING, locked ? "" : player.getUniqueId().toString());
             setPrivateItem(player, gui, armorStand, adminBypass);
         }), Config.get().features.privateArmorstand, player));
     }

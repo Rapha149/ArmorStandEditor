@@ -86,7 +86,8 @@ public class Events implements Listener {
 
         Player player = event.getPlayer();
         if (player.isSneaking()) {
-            String key = Config.get().advancement;
+            Config config = Config.get();
+            String key = config.advancement;
             if (key != null) {
                 Advancement advancement = Bukkit.getAdvancement(NamespacedKey.fromString(key));
                 if (advancement != null) {
@@ -94,6 +95,12 @@ public class Events implements Listener {
                     if (!progress.isDone())
                         progress.getRemainingCriteria().forEach(progress::awardCriteria);
                 }
+            }
+
+            if (config.features.privateArmorstand.autoPrivate) {
+                PersistentDataContainer pdc = armorStand.getPersistentDataContainer();
+                if (!pdc.has(Util.PRIVATE_KEY, PersistentDataType.STRING))
+                    pdc.set(Util.PRIVATE_KEY, PersistentDataType.STRING, player.getUniqueId().toString());
             }
 
             event.setCancelled(true);

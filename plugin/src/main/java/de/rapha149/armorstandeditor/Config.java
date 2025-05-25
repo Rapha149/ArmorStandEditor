@@ -49,6 +49,7 @@ public class Config {
         comments.put("features.advancedControls", "Using advanced controls to change position, rotation and pose." +
                                                   "\nThey can be individually enabled/disabled via the options above.");
         comments.put("features.privateArmorstand", "Making your armor stand private so that only you can open its ASE inventory.");
+        comments.put("features.privateArmorstand.autoPrivate", "Whether or not armor stands should become private when first accessed.");
         comments.put("features.disabledSlots", "Locking the equipment slots of your armor stand so that players can't take items directly.");
         comments.put("features.invisibility", "Making your armor stand invisible.");
         comments.put("features.invulnerability", "Making your armor stand invulnerable.");
@@ -259,7 +260,7 @@ public class Config {
         public MovePositionFeatureData movePosition = new MovePositionFeatureData();
         public FeatureData rotate = new FeatureData();
         public FeatureData advancedControls = new FeatureData();
-        public FeatureData privateArmorstand = new FeatureData();
+        public PrivateArmorstandFeatureData privateArmorstand = new PrivateArmorstandFeatureData();
         public FeatureData disabledSlots = new FeatureData();
         public FeatureData invisibility = new FeatureData();
         public FeatureData invulnerability = new FeatureData();
@@ -301,6 +302,11 @@ public class Config {
                 this.maxDistance = maxDistance;
                 this.maxDistanceSquared = maxDistance * maxDistance;
             }
+        }
+
+        public static class PrivateArmorstandFeatureData extends FeatureData {
+
+            public boolean autoPrivate = false;
         }
 
         public static class VehicleFeatureData extends FeatureData {

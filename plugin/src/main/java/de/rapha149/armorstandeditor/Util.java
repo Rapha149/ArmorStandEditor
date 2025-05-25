@@ -92,8 +92,8 @@ public class Util {
         }
 
         boolean adminBypass = false;
-        PersistentDataContainer pdc = armorStand.getPersistentDataContainer();
-        if (pdc.has(PRIVATE_KEY, PersistentDataType.STRING) && !pdc.get(PRIVATE_KEY, PersistentDataType.STRING).equals(player.getUniqueId().toString())) {
+        String privateValue = armorStand.getPersistentDataContainer().get(PRIVATE_KEY, PersistentDataType.STRING);
+        if (privateValue != null && !privateValue.isEmpty() && !privateValue.equals(player.getUniqueId().toString())) {
             if (permissions.ignorePrivate != null && !player.hasPermission(permissions.ignorePrivate)) {
                 player.sendMessage(getMessage("armorstands.no_permission"));
                 return;
