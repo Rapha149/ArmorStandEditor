@@ -23,7 +23,7 @@ A Minecraft plugin to edit armor stands simply by interacting with them.
 - Rename the armor stand (color codes and hex codes supported!)
 - Use the armor stand as a passenger/vehicle
 - You can deactivate or set permissions for any feature!
-- All messages are customizable!
+- All messages are customizable using the [MiniMessage](https://docs.advntr.dev/minimessage/format.html) format!
 
 ## URLs
 
@@ -37,7 +37,7 @@ You can access the ArmorStandEditor inventory simply by sneaking and right click
 ## Commands
 
 The only command of the plugin is `/asereload`.  
-You can use to reload the config and messages of the plugin without having to restart/reload your server.
+You can use it to reload the config and messages of the plugin without having to restart/reload your server.
 
 ## Permissions
 
@@ -52,7 +52,7 @@ You can set other permissions in the config:
 <summary>Expand ↓</summary>
 
 ```yaml
-# ArmorStandEditor version 1.5.14
+# ArmorStandEditor version 1.6.0
 # Github: https://github.com/Rapha149/ArmorStandEditor
 # Spigot: https://www.spigotmc.org/resources/armorstandeditor.108120/
 
@@ -118,6 +118,8 @@ features:
 
   # Making your armor stand private so that only you can open its ASE inventory.
   privateArmorstand:
+    # Whether or not armor stands should become private when first accessed.
+    autoPrivate: false
     enabled: true
     permission: null
 
@@ -191,6 +193,13 @@ features:
 
   # Receiving your armor stand as an item.
   giveItem:
+    # The item lore of the received item. Set to null to disable.
+    # Colors can be used with the MiniMessage format.
+    itemLore: null
+
+    # The item name of the received item. Set to null to default to the armor stand's name.
+    # Colors can be used with the MiniMessage format.
+    itemName: null
     enabled: true
     permission: null
 
