@@ -60,15 +60,17 @@ public final class ArmorStandEditor extends JavaPlugin {
         loadMetrics();
 
         if (Config.get().checkForUpdates) {
-            String version = Updates.getAvailableVersion();
-            if (version != null) {
-                if (version.isEmpty())
-                    getLogger().info(getMessage("plugin.up_to_date").plain());
-                else {
-                    for (String line : getMessage("plugin.outdated").plain().split("\n"))
-                        getLogger().warning(line.replace("%version%", version).replace("%url%", Updates.SPIGOT_URL));
+            Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                String version = Updates.getAvailableVersion();
+                if (version != null) {
+                    if (version.isEmpty())
+                        getLogger().info(getMessage("plugin.up_to_date").plain());
+                    else {
+                        for (String line : getMessage("plugin.outdated").plain().split("\n"))
+                            getLogger().warning(line.replace("%version%", version).replace("%url%", Updates.SPIGOT_URL));
+                    }
                 }
-            }
+            });
         }
 
         new ReloadCommand(getCommand("asereload"));
