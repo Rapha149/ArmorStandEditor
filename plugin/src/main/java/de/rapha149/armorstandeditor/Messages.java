@@ -43,6 +43,7 @@ public class Messages {
         messageConfig.addDefault("not_possible_now", "%prefix%<red>This is not possible right now.");
         messageConfig.addDefault("armorstands.no_permission", "%prefix%<red>You can't edit this armor stand.");
         messageConfig.addDefault("armorstands.already_open", "%prefix%<red>This armor stand is already being edited at the moment.");
+        messageConfig.addDefault("armorstands.armor_page_cooldown", "%prefix%<gold>Please wait a moment.");
         messageConfig.addDefault("armorstands.features.deactivated", "<red>Not available." +
                                                                      "\n<red>This feature is disabled.");
         messageConfig.addDefault("armorstands.features.no_permission", "<red>Not available." +

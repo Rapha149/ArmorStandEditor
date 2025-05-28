@@ -1,5 +1,6 @@
 package de.rapha149.armorstandeditor;
 
+import de.rapha149.armorstandeditor.Config.CooldownData;
 import de.rapha149.armorstandeditor.Config.FeaturesData;
 import de.rapha149.armorstandeditor.Config.FeaturesData.FeatureData;
 import de.rapha149.armorstandeditor.Config.PermissionsData;
@@ -61,6 +62,7 @@ public class Util {
 
     public static Map<Player, ArmorStandStatus> invs = new HashMap<>();
     public static Map<Long, AnvilGUI> anvilInvs = new HashMap<>();
+    public static List<UUID> armorPageCooldowns = new ArrayList<>();
     public static boolean disabling = false;
 
     public static void onDisable() {
@@ -113,6 +115,20 @@ public class Util {
             player.spigot().sendMessage(getMessage("armorstands.already_open").spigot());
             playBassSound(player);
             return;
+        }
+
+        if (page == 1) {
+            CooldownData cooldown = Config.get().armorPageCooldown;
+            if (cooldown.ticks > 0) {
+                UUID uuid = armorStand.getUniqueId();
+                if (armorPageCooldowns.contains(uuid)) {
+                    if (cooldown.message)
+                        player.spigot().sendMessage(getMessage("armorstands.armor_page_cooldown").spigot());
+                    return;
+                }
+                armorPageCooldowns.add(uuid);
+                Bukkit.getScheduler().runTaskLater(ArmorStandEditor.getInstance(), () -> armorPageCooldowns.remove(uuid), cooldown.ticks);
+            }
         }
 
         GuiResult result = (!advancedControls ? switch (page) {

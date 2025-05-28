@@ -31,6 +31,14 @@ public class Config {
                                                   "\nYou can set this permission to \"null\" to disable it, but it's not recommended as private armor stands would be available to everyone.");
         comments.put("deactivatedItem", "The item that is displayed when a feature is disabled." +
                                         "\nSet to \"null\" to show the actual item of the feature even though it's disabled.");
+        comments.put("armorPageCooldown", """
+                A cooldown for opening the armor page of the gui. The cooldown is applied per armor stand.
+                It's applied when the gui is opened by right-clicking the armor stand, as well as when switching to the armor page within the gui, e.g. from the settings page.
+                It is not recommended to disable the cooldown because, when players repeatedly open and close the armor page in quick succession, the equipped items could disappear.""");
+        comments.put("armorPageCooldown.ticks", "The duration of the cooldown in Minecraft ticks (20 ticks = 1 second)." +
+                                                "\nSet to 0 to disable the cooldown.");
+        comments.put("armorPageCooldown.message", "Whether or not the message specified in messages.yml should be sent to players when " +
+                                                  "they try to open the armor page while the cooldown is still active.");
         comments.put("features", "A list of features. You can enable/disable each feature or set a permission to use a certain feature." +
                                  "\nIf you want a feature to be enabled and everybody to be able to use it, set the permission to \"null\".");
         comments.put("features.replaceEquipment", "Replacing the armor stand's equipment (armor and hand items) in the ASE inventory.");
@@ -143,6 +151,7 @@ public class Config {
     public String advancement = null;
     public PermissionsData permissions = new PermissionsData();
     public String deactivatedItem = "minecraft:gray_dye";
+    public CooldownData armorPageCooldown = new CooldownData();
     public FeaturesData features = new FeaturesData();
     public List<PresetData> presets = List.of(
             new PresetData("Default", Map.of(
@@ -256,6 +265,12 @@ public class Config {
 
         public String general = null;
         public String ignorePrivate = "armorstandeditor.ignoreprivate";
+    }
+
+    public static class CooldownData {
+
+        public int ticks = 30;
+        public boolean message = true;
     }
 
     public static class FeaturesData {
