@@ -1,6 +1,7 @@
 package de.rapha149.armorstandeditor;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.ParsingException;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -13,6 +14,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -251,6 +253,7 @@ public class Messages {
     }
 
     public static void loadMessages() {
+        Logger logger = ArmorStandEditor.getInstance().getLogger();
         try {
             if (messageFile.exists()) {
                 BufferedReader br = new BufferedReader(new FileReader(messageFile));
@@ -282,7 +285,7 @@ public class Messages {
 
                         messageConfig.set("armorstands.move_body_parts.title.text", messageConfig.getString("armorstands.move_body_parts.title.text")
                                 .replaceAll("<(\\w+)>\\|", "<reset><$1>|"));
-                        ArmorStandEditor.getInstance().getLogger().info("The messages in messages.yml were converted to MiniMessage format.");
+                        logger.info("The messages in messages.yml were converted to MiniMessage format.");
                     }
                 }
             } else
@@ -293,7 +296,11 @@ public class Messages {
                 if (!messageConfig.getDefaults().isSet(key)) {
                     messageConfig.set(key, null);
                 } else {
-                    messages.put(key, new Message(messageConfig.getString(key)));
+                    try {
+                        messages.put(key, new Message(messageConfig.getString(key)));
+                    } catch (ParsingException e) {
+                        logger.severe("Failed to parse message for key: " + key + " (" + e.getMessage() + ")");
+                    }
                 }
             });
 
@@ -303,7 +310,7 @@ public class Messages {
             }
         } catch (IOException | InvalidConfigurationException e) {
             e.printStackTrace();
-            ArmorStandEditor.getInstance().getLogger().severe("Failed to load message config.");
+            logger.severe("Failed to load message config.");
         }
     }
 
@@ -311,7 +318,7 @@ public class Messages {
         if (messages.containsKey(key)) {
             return messageConfig.getString(key);
         } else {
-            throw new IllegalArgumentException("Message key \"" + key + "\" does not exist.");
+            return "Unknown message key: " + key;
         }
     }
 
@@ -319,7 +326,7 @@ public class Messages {
         if (messages.containsKey(key)) {
             return messages.get(key);
         } else {
-            throw new IllegalArgumentException("Message key \"" + key + "\" does not exist.");
+            return new Message(Component.text("Unknown message key: " + key));
         }
     }
 
