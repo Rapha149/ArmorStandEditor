@@ -52,7 +52,7 @@ You can set other permissions in the config:
 <summary>Expand ↓</summary>
 
 ```yaml
-# ArmorStandEditor version 1.6.0
+# ArmorStandEditor version 1.6.1
 # Github: https://github.com/Rapha149/ArmorStandEditor
 # Spigot: https://www.spigotmc.org/resources/armorstandeditor.108120/
 
@@ -74,6 +74,17 @@ permissions:
 # The item that is displayed when a feature is disabled.
 # Set to "null" to show the actual item of the feature even though it's disabled.
 deactivatedItem: minecraft:gray_dye
+
+# A cooldown for opening the armor page of the gui. The cooldown is applied per armor stand.
+# It's applied when the gui is opened by right-clicking the armor stand, as well as when switching to the armor page within the gui, e.g. from the settings page.
+# It is not recommended to disable the cooldown because, when players repeatedly open and close the armor page in quick succession, the equipped items could disappear.
+armorPageCooldown:
+  # The duration of the cooldown in Minecraft ticks (20 ticks = 1 second).
+  # Set to 0 to disable the cooldown.
+  ticks: 30
+
+  # Whether or not the message specified in messages.yml should be sent to players when they try to open the armor page while the cooldown is still active.
+  message: true
 
 # A list of features. You can enable/disable each feature or set a permission to use a certain feature.
 # If you want a feature to be enabled and everybody to be able to use it, set the permission to "null".
