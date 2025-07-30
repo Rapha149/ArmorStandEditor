@@ -74,8 +74,12 @@ public class Config {
         comments.put("features.vehicle.players", "Whether or not players can be selected as passengers.");
         comments.put("features.rename", "Renaming your armor stand.");
         comments.put("features.giveItem", "Receiving your armor stand as an item.");
-        comments.put("features.giveItem.itemName", "The item name of the received item. Set to null to default to the armor stand's name." +
-                                                   "\nColors can be used with the MiniMessage format.");
+        comments.put("features.giveItem.itemName", """
+                The item name of the received item. Set to null to default to the armor stand's name.
+                Colors can be used with the MiniMessage format.
+                Be aware that if you set a value here and an armor stand didn't have a custom name when using the feature,
+                the armor stand will have the item name as its custom name once placed. This is due to Minecraft mechanics with renaming items.
+                However, the custom name will not be shown, since the visible flag for the custom name will not be set. It is shown in the gui (in the renaming item) though.""");
         comments.put("features.giveItem.itemLore", "The item lore of the received item. Set to null to disable." +
                                                    "\nColors can be used with the MiniMessage format.");
         comments.put("features.copy", "Copying your armor stand settings by combining a modified armor stand item with a normal armor stand item in the crafting table." +

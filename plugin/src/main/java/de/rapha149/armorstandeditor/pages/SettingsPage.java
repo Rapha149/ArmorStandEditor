@@ -100,19 +100,18 @@ public class SettingsPage extends Page {
                 gui.close(player);
                 ItemStack item = wrapper.getArmorstandItem(armorStand, PRIVATE_KEY);
                 Util.makeArmorstandItem(item);
+                ItemBuilder builder = ItemBuilder.from(item);
 
-                if (features.giveItem.itemNameComponent != null || features.giveItem.itemLoreComponents != null) {
-                    ItemBuilder builder = ItemBuilder.from(item);
-                    if (features.giveItem.itemNameComponent != null)
-                        builder.name(features.giveItem.itemNameComponent);
-                    if (features.giveItem.itemLoreComponents != null)
-                        builder.lore(features.giveItem.itemLoreComponents);
-                    item = builder.build();
-                }
+                Optional.ofNullable(features.giveItem.itemNameComponent)
+                        .or(() -> wrapper.getCustomNameJson(armorStand).map(GSON_SERIALIZER::deserialize)
+                                .map(component -> component.decoration(TextDecoration.ITALIC, false)))
+                        .ifPresent(builder::name);
+                if (features.giveItem.itemLoreComponents != null)
+                    builder.lore(features.giveItem.itemLoreComponents);
 
                 if (player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR)
                     armorStand.remove();
-                inv.addItem(item);
+                inv.addItem(builder.build());
                 playArmorStandBreakSound(player);
             });
         }), features.giveItem, player));

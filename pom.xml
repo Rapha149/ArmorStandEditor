@@ -6,7 +6,7 @@
 
     <groupId>de.rapha149.armorstandeditor</groupId>
     <artifactId>ArmorStandEditor-parent</artifactId>
-    <version>1.6.1</version>
+    <version>1.6.2</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -25,6 +25,7 @@
         <module>1_21_R2</module>
         <module>1_21_R3</module>
         <module>1_21_R4</module>
+        <module>1_21_R5</module>
     </modules>
 
     <properties>
@@ -59,6 +60,10 @@
                                 <relocation>
                                     <pattern>dev.triumphteam.gui</pattern>
                                     <shadedPattern>de.rapha149.armorstandeditor.gui</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.kyori</pattern>
+                                    <shadedPattern>de.rapha149.armorstandeditor.kyori</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>net.wesjd.anvilgui</pattern>
