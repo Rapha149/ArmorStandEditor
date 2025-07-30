@@ -210,6 +210,9 @@ features:
 
     # The item name of the received item. Set to null to default to the armor stand's name.
     # Colors can be used with the MiniMessage format.
+    # Be aware that if you set a value here and an armor stand didn't have a custom name when using the feature,
+    # the armor stand will have the item name as its custom name once placed. This is due to Minecraft mechanics with renaming items.
+    # However, the custom name will not be shown, since the visible flag for the custom name will not be set. It is shown in the gui (in the renaming item) though.
     itemName: null
     enabled: true
     permission: null
@@ -720,6 +723,10 @@ presets:
   name: Sad
 ```
 </details>
+
+## Known issues
+
+- On Spigot 1.21.6 and above, if you make the armor stand invisible, then use the "give item" feature to get the armor stand item and place it again, you won't be able to break the armor stand in survival even after you made it visible again.
 
 ## Additional information
 
