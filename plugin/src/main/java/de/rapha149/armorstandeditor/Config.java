@@ -24,13 +24,13 @@ public class Config {
 
     static {
         comments.put("checkForUpdates", "Whether to check for updates on enabling.");
-        comments.put("advancement", "The advancement to grant the player when he first accesses an armor stand. Set to \"null\" to disable.");
+        comments.put("advancement", "The advancement to grant the player when he first accesses an armor stand. Set to null to disable.");
         comments.put("permissions.general", "The permission that is needed to interact with armor stands and open the menu." +
-                                            "\nSet to \"null\" to disable the permission and allow everybody to use the plugin.");
+                                            "\nSet to null to disable the permission and allow everybody to use the plugin.");
         comments.put("permissions.ignorePrivate", "With this permission, players can open private armor stands even if they wouldn't have access to them." +
-                                                  "\nYou can set this permission to \"null\" to disable it, but it's not recommended as private armor stands would be available to everyone.");
+                                                  "\nYou can set this permission to null to disable it, but it's not recommended as private armor stands would be available to everyone.");
         comments.put("deactivatedItem", "The item that is displayed when a feature is disabled." +
-                                        "\nSet to \"null\" to show the actual item of the feature even though it's disabled.");
+                                        "\nSet to null to show the actual item of the feature even though it's disabled.");
         comments.put("armorPageCooldown", """
                 A cooldown for opening the armor page of the gui. The cooldown is applied per armor stand.
                 It's applied when the gui is opened by right-clicking the armor stand, as well as when switching to the armor page within the gui, e.g. from the settings page.
@@ -40,7 +40,7 @@ public class Config {
         comments.put("armorPageCooldown.message", "Whether or not the message specified in messages.yml should be sent to players when " +
                                                   "they try to open the armor page while the cooldown is still active.");
         comments.put("features", "A list of features. You can enable/disable each feature or set a permission to use a certain feature." +
-                                 "\nIf you want a feature to be enabled and everybody to be able to use it, set the permission to \"null\".");
+                                 "\nIf you want a feature to be enabled and everybody to be able to use it, set the permission to null.");
         comments.put("features.replaceEquipment", "Replacing the armor stand's equipment (armor and hand items) in the ASE inventory.");
         comments.put("features.replaceEquipment.useDeactivatedItem", "Whether or not to replace the armor and hand items of the armor stand with the disabled item when this feature is disabled.");
         comments.put("features.replaceEquipment.clearItemsOnOpen", """
@@ -53,7 +53,7 @@ public class Config {
                 The maximum distance the player can move an armor stand away from himself.
                 This option only affects the movement controlled by the buttons in the gui, not the movement controlled by going somewhere / looking around.
                 This limit exists to prevent players from unloading armor stands by moving them far away and then duplicating items.
-                You can set increase it or set it to 0 to allow an infinite distance, but this is not recommended.""");
+                You can increase it or set it to 0 to allow an infinite distance, but this is not recommended.""");
         comments.put("features.rotate", "Changing the armor stand's rotation.");
         comments.put("features.advancedControls", "Using advanced controls to change position, rotation and pose." +
                                                   "\nThey can be individually enabled/disabled via the options above.");
@@ -293,7 +293,6 @@ public class Config {
         public FeatureData basePlate = new FeatureData();
         public FeatureData small = new FeatureData();
         public FeatureData glowing = new FeatureData();
-        public FeatureData movable = new FeatureData();
         public FeatureData fire = new FeatureData();
         public VehicleFeatureData passenger = new VehicleFeatureData();
         public VehicleFeatureData vehicle = new VehicleFeatureData();

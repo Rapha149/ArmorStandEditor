@@ -59,20 +59,20 @@ You can set other permissions in the config:
 # Whether to check for updates on enabling.
 checkForUpdates: true
 
-# The advancement to grant the player when he first accesses an armor stand. Set to "null" to disable.
+# The advancement to grant the player when he first accesses an armor stand. Set to null to disable.
 advancement: null
 
 permissions:
   # The permission that is needed to interact with armor stands and open the menu.
-  # Set to "null" to disable the permission and allow everybody to use the plugin.
+  # Set to null to disable the permission and allow everybody to use the plugin.
   general: null
 
   # With this permission, players can open private armor stands even if they wouldn't have access to them.
-  # You can set this permission to "null" to disable it, but it's not recommended as private armor stands would be available to everyone.
+  # You can set this permission to null to disable it, but it's not recommended as private armor stands would be available to everyone.
   ignorePrivate: armorstandeditor.ignoreprivate
 
 # The item that is displayed when a feature is disabled.
-# Set to "null" to show the actual item of the feature even though it's disabled.
+# Set to null to show the actual item of the feature even though it's disabled.
 deactivatedItem: minecraft:gray_dye
 
 # A cooldown for opening the armor page of the gui. The cooldown is applied per armor stand.
@@ -87,7 +87,7 @@ armorPageCooldown:
   message: true
 
 # A list of features. You can enable/disable each feature or set a permission to use a certain feature.
-# If you want a feature to be enabled and everybody to be able to use it, set the permission to "null".
+# If you want a feature to be enabled and everybody to be able to use it, set the permission to null.
 features:
   # Replacing the armor stand's equipment (armor and hand items) in the ASE inventory.
   replaceEquipment:
@@ -111,7 +111,7 @@ features:
     # The maximum distance the player can move an armor stand away from himself.
     # This option only affects the movement controlled by the buttons in the gui, not the movement controlled by going somewhere / looking around.
     # This limit exists to prevent players from unloading armor stands by moving them far away and then duplicating items.
-    # You can set increase it or set it to 0 to allow an infinite distance, but this is not recommended.
+    # You can increase it or set it to 0 to allow an infinite distance, but this is not recommended.
     maxDistance: 100
     enabled: true
     permission: null
@@ -171,10 +171,6 @@ features:
 
   # Making your armor stand glow.
   glowing:
-    enabled: true
-    permission: null
-
-  movable:
     enabled: true
     permission: null
 
