@@ -422,7 +422,9 @@ public class Util {
                 2, "LEGGINGS",
                 3, "BOOTS").forEach((slot, type) -> {
             ItemStack item = newItems.get(slot);
-            if (!item.getType().isAir() && !item.getType().toString().endsWith("_" + type)) {
+            if (!item.getType().isAir()
+                    && (!item.getType().toString().endsWith("_" + type)
+                    && !(slot == 1 && item.getType() == Material.ELYTRA))) {
                 for (ItemStack drop : player.getInventory().addItem(item).values())
                     player.getWorld().dropItem(player.getLocation(), drop);
 
