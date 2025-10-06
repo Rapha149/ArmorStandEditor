@@ -27,9 +27,10 @@ public final class ArmorStandEditor extends JavaPlugin {
             "1.21.5", "1_21_R4",
             "1.21.6", "1_21_R5",
             "1.21.7", "1_21_R5",
-            "1.21.8", "1_21_R5"
+            "1.21.8", "1_21_R5",
+            "1.21.9", "1_21_R6"
     );
-    private static final String NEWEST_VERSION = "1_21_R5";
+    private static final String NEWEST_VERSION = "1_21_R6";
 
     private static ArmorStandEditor instance;
 
